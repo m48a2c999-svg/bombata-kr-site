@@ -36,3 +36,9 @@ Supabase > Table Editor > `bombata_orders` (status = DONE 이 결제 완료). �
 
 ## 가격 바꿀 때
 `assets/products.js` 의 `price` 와 `supabase/functions/bombata-confirm/index.ts` 의 `PRICE` 를 **함께** 수정 후 함수 재배포.
+
+## 재고·주문 관리 (2026-11-13 추가)
+- 컬러별 남은 수량: Supabase `public.bombata_stock` (SQL: `supabase/sql/002_bombata_stock.sql`)
+- 홈페이지는 Edge Function `bombata-stock`(GET)로 남은 수량을 읽어 품절·마감 임박을 표시하고, 남은 수량보다 많이 담지 못하게 막습니다.
+- 결제 승인(`bombata-confirm`) 직전에 서버가 재고를 차감합니다. 모자라면 결제를 승인하지 않고, 토스 승인 실패 시 재고를 되돌립니다.
+- 관리자 화면: `https://www.bombata.kr/admin.html` — 재고 수정, 주문·출고상태·송장번호 관리, 출고용 CSV. 비밀번호는 Supabase Edge Function Secrets 의 `BOMBATA_ADMIN_KEY`.

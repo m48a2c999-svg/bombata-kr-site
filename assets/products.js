@@ -15,6 +15,8 @@ window.SITE = {
   //  - PG 심사 통과 후 개발자센터 > API 키 > 결제위젯 연동 키(live_gck_...)로 교체
   tossClientKey: 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm',
   // 결제 승인 서버 (Supabase Edge Function, 연링크 프로젝트 공유)
+  stockUrl: 'https://qoyvpxtvcwkonwdtkdhk.supabase.co/functions/v1/bombata-stock', // 컬러별 남은 수량(관리자 페이지에서 수정)
+  lowStockAt: 5,                 // 이 수량 이하면 '마감 임박' 표시
   confirmUrl: 'https://qoyvpxtvcwkonwdtkdhk.supabase.co/functions/v1/bombata-confirm',
   freeShippingOver: 0,          // 0 = 전 상품 무료배송
   shippingFee: 3000,

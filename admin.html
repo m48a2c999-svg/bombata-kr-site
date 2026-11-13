@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>봄바타 코리아 · 재고·주문 관리</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',sans-serif;background:#f6f3ed;color:#1c1b19;font-size:14px}
+button,input,select{font:inherit}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 22px 80px}
+h1{font-size:22px;font-weight:700;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+h1 small{font-size:12px;font-weight:400;color:#7a7468}
+h2{font-size:16px;margin:36px 0 12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.card{background:#fff;border-radius:16px;box-shadow:0 0 0 1px #e6dfd2;overflow:auto}
+.login{max-width:380px;margin:12vh auto;background:#fff;border-radius:18px;padding:34px;box-shadow:0 0 0 1px #e6dfd2}
+.login h1{margin-bottom:8px}.login p{font-size:13px;color:#7a7468;line-height:1.6;margin-bottom:18px}
+input[type=password],input[type=text],input[type=number],select{height:40px;border:1px solid #ddd5c6;border-radius:10px;padding:0 12px;background:#fff}
+.login input{width:100%;margin-bottom:12px}
+.btn{height:40px;padding:0 16px;border-radius:10px;border:0;background:#1c1b19;color:#fff;cursor:pointer;white-space:nowrap}
+.btn.line{background:#fff;color:#1c1b19;border:1px solid #1c1b19}
+.btn.sm{height:32px;padding:0 12px;font-size:12px}
+.btn:disabled{opacity:.4}
+.err{color:#a3271b;font-size:13px;margin-top:8px;min-height:18px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:22px}
+.kpi{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 0 0 1px #e6dfd2}
+.kpi b{display:block;font-size:22px;margin-top:4px}.kpi span{font-size:12px;color:#7a7468}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{padding:10px 12px;border-bottom:1px solid #efe9de;text-align:left;vertical-align:middle}
+th{font-size:12px;color:#7a7468;font-weight:500;background:#fbf9f5;position:sticky;top:0}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.q{width:84px;text-align:right}
+.tag{display:inline-block;font-size:11px;padding:3px 8px;border-radius:999px;background:#eee8dc;color:#5b5446}
+.tag.ok{background:#e3f1e5;color:#24683a}.tag.bad{background:#f8e2df;color:#a3271b}.tag.warn{background:#fbefd9;color:#8a5a12}.tag.test{background:#e6ecf7;color:#2f4f86}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:6px;box-shadow:0 0 0 1px rgba(0,0,0,.1) inset}
+.small{font-size:12px;color:#7a7468}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:400}
+.trk{width:150px}
+.saved{color:#24683a;font-size:12px;margin-left:6px}
+.note{font-size:12px;color:#7a7468;line-height:1.7;margin-top:10px}
+@media (max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="login" class="login">
+  <h1>재고·주문 관리</h1>
+  <p>봄바타 코리아 관리자 전용 화면입니다. Supabase에 설정한 관리자 비밀번호(BOMBATA_ADMIN_KEY)를 입력하세요.</p>
+  <form id="lf"><input type="password" id="pw" placeholder="관리자 비밀번호" autocomplete="current-password"><button class="btn" style="width:100%">들어가기</button></form>
+  <div class="err" id="lerr"></div>
+</div>
+
+<div id="app" class="wrap" hidden>
+  <h1>봄바타 코리아 · 재고·주문 관리 <small id="at"></small>
+    <span style="margin-left:auto" class="tools"><a class="btn line sm" href="./" target="_blank" style="display:inline-flex;align-items:center;text-decoration:none">홈페이지 보기</a><button class="btn sm" id="reload">새로고침</button><button class="btn line sm" id="logout">로그아웃</button></span>
+  </h1>
+  <div class="kpis" id="kpis"></div>
+
+  <h2>컬러별 재고 <span class="tools small">남은 수량을 고치고 저장하면 홈페이지에 바로 반영됩니다(최대 1분). 0이면 '품절'로 표시됩니다.</span></h2>
+  <div class="card"><table><thead><tr><th>상품</th><th>코드</th><th>컬러</th><th class="num">남은 수량</th><th class="num">홈페이지 판매 누적</th><th>홈페이지 표시</th><th></th></tr></thead><tbody id="stock"></tbody></table></div>
+
+  <h2>주문 · 출고 <span class="tools">
+    <select id="fStatus"><option value="DONE">결제완료만</option><option value="ALL">전체(실패·대기 포함)</option></select>
+    <select id="fFul"><option value="">출고상태 전체</option></select>
+    <label><input type="checkbox" id="fTest" checked> 테스트 결제 포함</label>
+    <button class="btn line sm" id="csv">출고용 CSV 내려받기</button>
+  </span></h2>
+  <div class="card"><table><thead><tr><th>주문일시</th><th>주문번호</th><th>받는 분</th><th>상품</th><th class="num">금액</th><th>결제</th><th>출고상태</th><th>송장번호</th><th>배송지</th></tr></thead><tbody id="orders"></tbody></table></div>
+  <p class="note">· 출고상태를 '취소' 또는 '환불완료'로 바꾸면 그 주문 수량이 재고에 자동으로 되돌아갑니다(한 번만).<br>· 고객 결제 취소(환불) 자체는 토스페이먼츠 상점관리자에서 처리해야 합니다. 이 화면은 기록·재고만 바꿉니다.<br>· 고객 개인정보가 보이는 화면입니다. 공용 PC에서는 사용 후 로그아웃하세요.</p>
+</div>
+
+<script src="assets/products.js"></script>
+<script>
+const S = window.SITE, P = window.PRODUCTS;
+const API = S.stockUrl;
+const FUL = ['출고대기', '출고준비', '출고완료', '배송완료', '취소', '환불완료'];
+const $ = id => document.getElementById(id);
+const won = n => '₩' + Number(n || 0).toLocaleString('ko-KR');
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const findP = id => P.find(p => p.id === id);
+const colorOf = (id, key) => { const p = findP(id); return p && p.colors.find(c => c.key === key); };
+let KEY = sessionStorage.getItem('bk_admin') || '', DATA = null;
+
+async function api(body) {
+  const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': KEY }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(j.message || ('오류 ' + r.status)); e.status = r.status; throw e; }
+  return j;
+}
+async function load() {
+  DATA = await api({ action: 'list' });
+  $('login').hidden = true; $('app').hidden = false;
+  $('at').textContent = new Date().toLocaleString('ko-KR') + ' 기준';
+  render();
+}
+$('lf').onsubmit = async e => {
+  e.preventDefault(); $('lerr').textContent = '';
+  KEY = $('pw').value.trim();
+  try { await load(); sessionStorage.setItem('bk_admin', KEY); }
+  catch (ex) { $('lerr').textContent = ex.message; }
+};
+$('logout').onclick = () => { sessionStorage.removeItem('bk_admin'); location.reload(); };
+$('reload').onclick = () => load().catch(ex => alert(ex.message));
+FUL.forEach(f => $('fFul').insertAdjacentHTML('beforeend', `<option>${f}</option>`));
+['fStatus', 'fFul', 'fTest'].forEach(id => $(id).onchange = renderOrders);
+
+function render() { renderKpis(); renderStock(); renderOrders(); }
+function renderKpis() {
+  const done = DATA.orders.filter(o => o.status === 'DONE');
+  const real = done.filter(o => !o.test_mode);
+  const today = new Date().toDateString();
+  const out = DATA.stock.filter(s => s.qty === 0).length;
+  const left = DATA.stock.reduce((a, s) => a + s.qty, 0);
+  const k = [
+    ['오늘 결제', done.filter(o => new Date(o.created_at).toDateString() === today).length + '건'],
+    ['실결제 매출(누적)', won(real.reduce((a, o) => a + o.amount, 0))],
+    ['출고 대기', done.filter(o => (o.fulfillment || '출고대기') === '출고대기' || o.fulfillment === '출고준비').length + '건'],
+    ['남은 재고(전체)', left + '개'],
+    ['품절 컬러', out + '개'],
+  ];
+  $('kpis').innerHTML = k.map(([a, b]) => `<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join('');
+}
+function renderStock() {
+  const LOW = S.lowStockAt || 5;
+  const rows = [];
+  P.forEach(p => p.colors.forEach(c => {
+    const s = DATA.stock.find(x => x.product_id === p.id && x.color_key === c.key) || { qty: 0, sold: 0, missing: true };
+    const tag = s.missing ? '<span class="tag bad">등록 안 됨(품절 처리)</span>' : s.qty === 0 ? '<span class="tag bad">품절</span>' : s.qty <= LOW ? `<span class="tag warn">마감 임박 · ${s.qty}개</span>` : `<span class="tag ok">판매중 · ${s.qty}개</span>`;
+    rows.push(`<tr><td>${esc(p.name)}</td><td class="small">${esc(p.code)}</td><td><span class="dot" style="background:${c.hex}"></span>${esc(c.name)} <span class="small">${esc(c.key)}</span></td>
+      <td class="num"><input class="q" type="number" min="0" step="1" value="${s.qty}" data-p="${p.id}" data-c="${c.key}"></td><td class="num">${s.sold || 0}</td><td>${tag}</td>
+      <td><button class="btn sm" data-save="${p.id}|${c.key}">저장</button><span class="saved"></span></td></tr>`);
+  }));
+  $('stock').innerHTML = rows.join('');
+}
+$('stock').addEventListener('click', async e => {
+  const b = e.target.closest('[data-save]'); if (!b) return;
+  const [pid, ck] = b.dataset.save.split('|');
+  const inp = $('stock').querySelector(`input[data-p="${pid}"][data-c="${ck}"]`);
+  const qty = Number(inp.value);
+  if (!Number.isInteger(qty) || qty < 0) return alert('0 이상의 정수를 입력하세요.');
+  b.disabled = true;
+  try {
+    const { row } = await api({ action: 'setStock', product_id: pid, color_key: ck, qty });
+    const i = DATA.stock.findIndex(x => x.product_id === pid && x.color_key === ck);
+    i >= 0 ? DATA.stock[i] = row : DATA.stock.push(row);
+    renderKpis(); renderStock();
+    const sv = $('stock').querySelector(`[data-save="${pid}|${ck}"]`).nextElementSibling; sv.textContent = '저장됨';
+  } catch (ex) { alert(ex.message); b.disabled = false; }
+});
+
+function filtered() {
+  const st = $('fStatus').value, fu = $('fFul').value, test = $('fTest').checked;
+  return DATA.orders.filter(o => (st === 'ALL' || o.status === 'DONE') && (!fu || (o.fulfillment || '출고대기') === fu) && (test || !o.test_mode));
+}
+const itemsTxt = o => (o.items || []).map(i => `${i.name || i.id} / ${i.color || i.colorKey} × ${i.q}`).join('<br>');
+function renderOrders() {
+  const list = filtered();
+  $('orders').innerHTML = list.length ? list.map(o => {
+    const pay = o.status === 'DONE' ? '<span class="tag ok">결제완료</span>' : o.status === 'PENDING' ? '<span class="tag warn">처리중</span>' : `<span class="tag bad">실패${o.error_code ? ' · ' + esc(o.error_code) : ''}</span>`;
+    const ful = o.status === 'DONE' ? `<select data-ful="${esc(o.order_id)}">${FUL.map(f => `<option ${f === (o.fulfillment || '출고대기') ? 'selected' : ''}>${f}</option>`).join('')}</select>` : '<span class="small">—</span>';
+    const trk = o.status === 'DONE' ? `<input class="trk" type="text" value="${esc(o.tracking || '')}" placeholder="송장번호" data-trk="${esc(o.order_id)}">` : '';
+    return `<tr><td class="small">${new Date(o.created_at).toLocaleString('ko-KR')}</td>
+      <td class="small">${esc(o.order_id)}${o.test_mode ? ' <span class="tag test">테스트</span>' : ''}${o.preorder ? ' <span class="tag">사전예약</span>' : ''}</td>
+      <td>${esc(o.customer_name)}<br><span class="small">${esc(o.customer_phone)}</span></td>
+      <td>${itemsTxt(o)}</td><td class="num">${won(o.amount)}<br><span class="small">${esc(o.method || '')}</span></td>
+      <td>${pay}${o.receipt_url ? `<br><a class="small" href="${esc(o.receipt_url)}" target="_blank" rel="noopener">영수증</a>` : ''}</td>
+      <td>${ful}</td><td>${trk}</td>
+      <td class="small">(${esc(o.ship_zip)}) ${esc(o.ship_addr1)} ${esc(o.ship_addr2)}${o.ship_memo ? '<br>메모: ' + esc(o.ship_memo) : ''}</td></tr>`;
+  }).join('') : '<tr><td colspan="9" class="small" style="padding:30px;text-align:center">해당하는 주문이 없습니다.</td></tr>';
+}
+$('orders').addEventListener('change', async e => {
+  const s = e.target.closest('[data-ful]'), tr = e.target.closest('[data-trk]');
+  try {
+    if (s) {
+      const v = s.value, id = s.dataset.ful;
+      if ((v === '취소' || v === '환불완료') && !confirm(`${id} 주문을 '${v}'로 바꾸면 주문 수량이 재고로 돌아갑니다. 토스 결제 취소는 상점관리자에서 따로 해야 합니다. 계속할까요?`)) { renderOrders(); return; }
+      const r = await api({ action: 'setOrder', order_id: id, fulfillment: v });
+      await load();
+      if (r.restocked) alert('재고에 수량을 되돌렸습니다.');
+    }
+    if (tr) { await api({ action: 'setOrder', order_id: tr.dataset.trk, tracking: tr.value.trim() }); const o = DATA.orders.find(x => x.order_id === tr.dataset.trk); if (o) o.tracking = tr.value.trim(); tr.style.borderColor = '#24683a'; }
+  } catch (ex) { alert(ex.message); }
+});
+$('csv').onclick = () => {
+  const head = ['주문일시', '주문번호', '받는분', '연락처', '이메일', '우편번호', '주소', '상세주소', '배송메모', '상품코드', '상품명', '컬러', '수량', '금액', '결제수단', '출고상태', '송장번호', '테스트'];
+  const lines = [head];
+  filtered().forEach(o => (o.items || []).forEach(i => lines.push([
+    new Date(o.created_at).toLocaleString('ko-KR'), o.order_id, o.customer_name, o.customer_phone, o.customer_email, o.ship_zip, o.ship_addr1, o.ship_addr2, o.ship_memo,
+    i.code, i.name, i.color, i.q, (i.price || 0) * i.q, o.method, o.fulfillment || '출고대기', o.tracking || '', o.test_mode ? 'Y' : '',
+  ])));
+  const csv = '﻿' + lines.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `봄바타_출고목록_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+};
+if (KEY) load().catch(() => { sessionStorage.removeItem('bk_admin'); KEY = ''; });
+</script>
+</body>
+</html>

@@ -43,6 +43,7 @@ const TX = {
   ok: { en: 'Payment approved.', ja: '決済が承認されました。', it: 'Pagamento approvato.' },
   receipt: { en: 'View receipt', ja: '領収書を見る', it: 'Vedi ricevuta' },
   fail: { en: 'Payment was <em>not approved</em>', ja: '決済が<em>承認されません</em>でした', it: 'Pagamento <em>non approvato</em>' },
+  soldOut: { en: 'An item sold out just before payment, so the payment was not processed. Please check your cart.', ja: 'お支払い直前に完売した商品があったため、決済は行われていません。カートをご確認ください。', it: 'Un articolo si è esaurito poco prima del pagamento, quindi il pagamento non è stato eseguito. Controlla il carrello.' },
   refundNote: { en: 'If you were charged, it will be cancelled automatically. Contact: +82-2-3482-2701', ja: '請求された場合は自動的に取り消されます。お問い合わせ：+82-2-3482-2701', it: 'Se è stato addebitato, verrà annullato automaticamente. Contatti: +82-2-3482-2701' },
   back: { en: 'Continue shopping', ja: '買い物を続ける', it: 'Continua lo shopping' },
   orderNo: { en: 'Order no.', ja: '注文番号', it: 'N. ordine' }, amount: { en: 'Amount', ja: '金額', it: 'Importo' }, to: { en: 'Recipient', ja: 'お受取人', it: 'Destinatario' }, addr: { en: 'Address', ja: 'お届け先', it: 'Indirizzo' },
@@ -76,7 +77,7 @@ const CONFIRM_URL = 'https://qoyvpxtvcwkonwdtkdhk.supabase.co/functions/v1/bomba
         customer: same ? order.customer : null, ship: same ? order.ship : null }),
     });
     if (r.status === 404) testOnly = true;
-    else { const j = await r.json(); confirmed = r.ok; msg = j.message || ''; receipt = j.receiptUrl || null; }
+    else { const j = await r.json(); confirmed = r.ok || !!j.already; msg = j.code === 'SOLD_OUT' ? tx('soldOut', j.message || '') : (j.message || ''); receipt = j.receiptUrl || null; }
   } catch { testOnly = true; }
 
   if (confirmed) {

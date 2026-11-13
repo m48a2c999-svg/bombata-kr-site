@@ -144,6 +144,12 @@ section.sec{padding:120px 0}
 .sw{width:18px;height:18px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.12) inset;outline:1px solid transparent;outline-offset:3px;transition:outline-color .2s,transform .2s}
 .sw:hover{transform:scale(1.15)}
 .sw.on{outline-color:var(--ink)}
+.sw.so{position:relative;opacity:.45}.sw.so::after{content:'';position:absolute;left:50%;top:-2px;bottom:-2px;width:1.5px;background:#c0392b;transform:translateX(-50%) rotate(45deg)}
+.pmedia .badge.so{background:#8a2a20}
+.stock{display:inline-block;margin-left:10px;font-size:12px;font-weight:500;letter-spacing:0;color:var(--ink2)}
+.stock.low{color:#b0601b}.stock.out{color:#a3271b}
+.pinfo .st{display:block;font-size:11px;margin-top:4px;color:#b0601b}.pinfo .st.out{color:#a3271b}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 
 /* ---------- material ---------- */
 .mat{background:var(--ink);color:#efe8db}
@@ -529,7 +535,7 @@ footer{background:#14130f;color:#a9a191;font-size:12px;line-height:1.9;padding:8
     <div class="tl" id="mTag"></div>
     <div class="price" id="mPrice"></div>
     <p class="desc" id="mDesc"></p>
-    <div class="opt-label">COLOR <b id="mColorName"></b></div>
+    <div class="opt-label">COLOR <b id="mColorName"></b><span class="stock" id="mStock"></span></div>
     <div class="m-sw" id="mSw"></div>
     <div class="opt-label">QUANTITY</div>
     <div class="qty"><button id="qMinus" aria-label="수량 감소">−</button><span id="qVal">1</span><button id="qPlus" aria-label="수량 증가">+</button></div>
@@ -708,6 +714,51 @@ function frame() {
 requestAnimationFrame(frame);
 
 /* =========================================================
+   STOCK — 컬러별 남은 수량 (Supabase bombata_stock)
+   ========================================================= */
+let STOCK = null; // { productId: { colorKey: qty } } — 못 불러오면 null(수량 표시 없이 판매)
+const LOW = S.lowStockAt || 5;
+function avail(id, key) { if (!STOCK) return null; const v = STOCK[id] && STOCK[id][key]; return typeof v === 'number' ? v : 0; }
+function maxQ(id, key) { const a = avail(id, key); return a === null ? 10 : Math.min(10, a); }
+function allOut(p) { return !!STOCK && p.colors.every(c => avail(p.id, c.key) === 0); }
+function stockLabel(a) { return a === null ? '' : a === 0 ? t('soldOut') : a <= LOW ? t('lowLeft', { n: a }) : t('left', { n: a }); }
+function cardStock(card, p) {
+  const c = p.colors[+card.dataset.ci || 0], a = avail(p.id, c.key), el = card.querySelector('[data-st]');
+  if (!el) return;
+  el.textContent = a === null || a > LOW ? '' : a === 0 ? t('soldOut') : t('lowLeft', { n: a });
+  el.classList.toggle('out', a === 0);
+}
+function modalStock() {
+  if (!cur) return;
+  const a = avail(cur.id, cur.colors[curColor].key), el = $('#mStock');
+  el.textContent = stockLabel(a);
+  el.className = 'stock' + (a === 0 ? ' out' : a !== null && a <= LOW ? ' low' : '');
+  const out = a === 0;
+  $('#mAdd').disabled = out; $('#mBuy').disabled = out;
+  qty = Math.max(1, Math.min(qty, maxQ(cur.id, cur.colors[curColor].key) || 1)); $('#qVal').textContent = qty;
+}
+function paintStock() {
+  document.querySelectorAll('.pcard').forEach(card => {
+    const p = P.find(x => x.id === card.dataset.id);
+    card.querySelectorAll('.sw').forEach((s, i) => s.classList.toggle('so', avail(p.id, p.colors[i].key) === 0));
+    const media = card.querySelector('.pmedia'); let bd = media.querySelector('.badge');
+    if (allOut(p)) { if (!bd) { bd = document.createElement('span'); media.prepend(bd); } bd.className = 'badge so'; bd.textContent = 'SOLD OUT'; }
+    else if (bd && bd.classList.contains('so')) { if (p.badge) { bd.className = 'badge'; bd.textContent = p.badge; } else bd.remove(); }
+    cardStock(card, p);
+  });
+  if (modal.classList.contains('on')) { $('#mSw').querySelectorAll('.sw').forEach((s, i) => s.classList.toggle('so', avail(cur.id, cur.colors[i].key) === 0)); modalStock(); }
+}
+async function loadStock(fresh) {
+  if (!S.stockUrl) return;
+  try {
+    const r = await fetch(S.stockUrl + (fresh ? '?t=' + Date.now() : ''), { cache: fresh ? 'no-store' : 'default' });
+    if (!r.ok) throw 0;
+    STOCK = (await r.json()).stock || null;
+  } catch (e) { /* 재고 서버 응답이 없으면 수량 표시 없이 그대로 판매(결제 시 서버가 최종 확인) */ }
+  if (typeof paintStock === 'function' && document.querySelector('.pcard')) paintStock();
+}
+
+/* =========================================================
    PRODUCT GRID — 호버 시 3D 틸트 + 커서 따라 확대
    ========================================================= */
 const grid = $('#grid');
@@ -715,7 +766,7 @@ grid.innerHTML = P.map(p => `
   <article class="pcard rv" data-id="${p.id}">
     <div class="inner">
       <div class="pmedia" data-open="${p.id}">
-        ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
+        ${allOut(p) ? `<span class="badge so">SOLD OUT</span>` : p.badge ? `<span class="badge">${p.badge}</span>` : ''}
         <span class="zoomhint"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4M11 8v6M8 11h6"/></svg></span>
         <img class="main" src="${IMG(p.colors[0].img, 1200)}" alt="Bombata ${pN(p)} ${cN(p.colors[0])}" loading="lazy" draggable="false">
         <div class="quick">
@@ -725,9 +776,9 @@ grid.innerHTML = P.map(p => `
       </div>
       <div class="pinfo">
         <h3>${p.en}<small>${L.lang === 'ko' ? `${p.name} · ${p.tagline}` : pT(p)}</small></h3>
-        <div class="pr">${won(p.price)}<small>${p.size}</small></div>
+        <div class="pr">${won(p.price)}<small>${p.size}</small><span class="st" data-st></span></div>
       </div>
-      <div class="swatches">${p.colors.map((c, i) => `<button class="sw ${i ? '' : 'on'}" style="background:${c.hex}" data-sw="${i}" aria-label="${cN(c)}" title="${cN(c)}"></button>`).join('')}</div>
+      <div class="swatches">${p.colors.map((c, i) => `<button class="sw ${i ? '' : 'on'} ${avail(p.id, c.key) === 0 ? 'so' : ''}" style="background:${c.hex}" data-sw="${i}" aria-label="${cN(c)}" title="${cN(c)}"></button>`).join('')}</div>
     </div>
   </article>`).join('');
 
@@ -751,11 +802,12 @@ grid.querySelectorAll('.pcard').forEach(card => {
     const i = +b.dataset.sw; card.dataset.ci = i;
     card.querySelectorAll('.sw').forEach(s => s.classList.toggle('on', s === b));
     img.style.opacity = 0;
+    cardStock(card, p);
     setTimeout(() => { img.src = IMG(p.colors[i].img, 1200); img.alt = `Bombata ${pN(p)} ${cN(p.colors[i])}`; img.onload = () => img.style.opacity = 1; }, 180);
   }));
   card.addEventListener('click', e => {
     const add = e.target.closest('[data-add]'), open = e.target.closest('[data-open]');
-    if (add) { e.stopPropagation(); addToCart(p.id, +card.dataset.ci, 1); return; }
+    if (add) { e.stopPropagation(); const c = p.colors[+card.dataset.ci]; if (avail(p.id, c.key) === 0) { toast(t('soldOutC', { p: pN(p), c: cN(c) })); return; } addToCart(p.id, +card.dataset.ci, 1); return; }
     if (open && !e.target.closest('.sw')) openModal(p.id, +card.dataset.ci);
   });
 });
@@ -787,7 +839,7 @@ function openModal(id, ci = 0) {
   $('#mPrice').innerHTML = `${won(cur.price)}<small>${t('freeShip')}</small>`;
   $('#mDesc').textContent = L.p(cur, 'story');
   $('#qVal').textContent = 1;
-  $('#mSw').innerHTML = cur.colors.map((c, i) => `<button class="sw ${i === ci ? 'on' : ''}" style="background:${c.hex}" data-i="${i}" aria-label="${cN(c)}" title="${cN(c)}"></button>`).join('');
+  $('#mSw').innerHTML = cur.colors.map((c, i) => `<button class="sw ${i === ci ? 'on' : ''} ${avail(cur.id, c.key) === 0 ? 'so' : ''}" style="background:${c.hex}" data-i="${i}" aria-label="${cN(c)}" title="${cN(c)}"></button>`).join('');
   const nav = $('#mNaver');
   if (cur.smartstore) { nav.href = cur.smartstore; nav.style.display = ''; } else { nav.href = S.smartstoreHome; nav.style.display = 'none'; }
   $('#mPo').style.display = isPre ? '' : 'none';
@@ -821,6 +873,7 @@ function setColor(i) {
   $('#mColorName').textContent = L.lang === 'it' ? cur.colors[i].it : `${cN(cur.colors[i])} (${cur.colors[i].it})`;
   $('#mSw').querySelectorAll('.sw').forEach((s, k) => s.classList.toggle('on', k === i));
   showImg(cur.colors[i].img, false); thumbs();
+  modalStock();
 }
 $('#mSw').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) setColor(+b.dataset.i); });
 mMain.addEventListener('pointermove', e => {
@@ -830,9 +883,9 @@ mMain.addEventListener('pointermove', e => {
 });
 mMain.addEventListener('pointerleave', () => mMain.classList.remove('zoom'));
 $('#qMinus').onclick = () => { qty = Math.max(1, qty - 1); $('#qVal').textContent = qty; };
-$('#qPlus').onclick = () => { qty = Math.min(10, qty + 1); $('#qVal').textContent = qty; };
-$('#mAdd').onclick = () => { addToCart(cur.id, curColor, qty); closeAll(); };
-$('#mBuy').onclick = () => { addToCart(cur.id, curColor, qty, true); closeAll(); openCheckout(); };
+$('#qPlus').onclick = () => { qty = Math.min(maxQ(cur.id, cur.colors[curColor].key), qty + 1); $('#qVal').textContent = qty; };
+$('#mAdd').onclick = () => { if (addToCart(cur.id, curColor, qty) !== false) closeAll(); };
+$('#mBuy').onclick = () => { if (addToCart(cur.id, curColor, qty, true) !== false) { closeAll(); openCheckout(); } };
 
 function closeAll() {
   modal.classList.remove('on'); $('#drawer').classList.remove('on'); dim.classList.remove('on');
@@ -851,7 +904,10 @@ cart = cart.filter(l => findP(l.id) && findP(l.id).colors[l.ci]);
 function saveCart() { store.set('bk_cart', cart); renderCart(); }
 function addToCart(id, ci, q, silent) {
   const ex = cart.find(l => l.id === id && l.ci === ci);
-  ex ? ex.q = Math.min(10, ex.q + q) : cart.push({ id, ci, q });
+  const mx = maxQ(id, findP(id).colors[ci].key);
+  if (mx < 1) { toast(t('soldOutC', { p: pN(findP(id)), c: cN(findP(id).colors[ci]) })); return false; }
+  if ((ex ? ex.q : 0) + q > mx) toast(t('maxLeft', { n: mx }));
+  ex ? ex.q = Math.min(mx, ex.q + q) : cart.push({ id, ci, q: Math.min(mx, q) });
   saveCart();
   const c = $('#cartCount'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
   if (!silent) toast(t('added', { p: pN(findP(id)), c: cN(findP(id).colors[ci]) }));
@@ -883,7 +939,7 @@ function renderCart() {
 }
 $('#drBody').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.iq) cart[+b.dataset.iq].q = Math.min(10, cart[+b.dataset.iq].q + 1);
+  if (b.dataset.iq) { const l = cart[+b.dataset.iq], mx = maxQ(l.id, findP(l.id).colors[l.ci].key); if (l.q >= mx) toast(t('maxLeft', { n: mx })); l.q = Math.min(mx, l.q + 1); }
   if (b.dataset.dq) { const l = cart[+b.dataset.dq]; l.q > 1 ? l.q-- : cart.splice(+b.dataset.dq, 1); }
   if (b.dataset.rm) cart.splice(+b.dataset.rm, 1);
   saveCart();
@@ -974,6 +1030,9 @@ $('#coForm').addEventListener('submit', async e => {
   if (!$('#agreeMine').checked) return err.textContent = t('eAgree');
   if (!widgetReady) return err.textContent = t('eWidget');
   if (!canRedirect) return err.textContent = t('eFile');
+  await loadStock(true);
+  const short = cart.find(l => { const a = avail(l.id, findP(l.id).colors[l.ci].key); return a !== null && a < l.q; });
+  if (short) { const sp = findP(short.id), sc = sp.colors[short.ci], a = avail(sp.id, sc.key); return err.textContent = a ? t('shortStock', { p: pN(sp), c: cN(sc), n: a }) : t('soldOutC', { p: pN(sp), c: cN(sc) }); }
   const tt = totals();
   const d = new Date(), pad = n => String(n).padStart(2, '0');
   const orderId = `BK${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
@@ -1005,6 +1064,9 @@ $('#coForm').addEventListener('submit', async e => {
     err.textContent = ex && ex.message ? ex.message : t('cancelled');
   } finally { $('#payBtn').disabled = false; }
 });
+
+loadStock();
+setInterval(() => { if (!document.hidden) loadStock(true); }, 60000);
 
 /* 해시로 바로 열기: #p-nylon-20 */
 if (location.hash.startsWith('#p-')) { const id = location.hash.slice(3); if (findP(id)) setTimeout(() => openModal(id), 400); }
