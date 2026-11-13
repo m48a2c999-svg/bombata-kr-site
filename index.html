@@ -299,7 +299,9 @@ footer{background:#14130f;color:#a9a191;font-size:12px;line-height:1.9;padding:8
 /* responsive */
 @media (max-width:1080px){
   nav.main{display:none}
-  .stage{left:50%;top:60%}
+  .hero{min-height:780px}
+  .stage{left:50%;top:66%}
+  .orb{width:260px;height:260px;margin:-130px 0 0 -130px}
   .grid{grid-template-columns:repeat(2,1fr)}
   .pcard,.pcard:nth-child(4),.pcard:nth-child(5){grid-column:span 1}
   .pcard:nth-child(5){grid-column:1/-1}
@@ -626,7 +628,7 @@ const N = P.length, STEP = 360 / N;
 let angle = 0, target = 0, auto = true, frontIdx = 0;
 let mx = 0, my = 0, tmx = 0, tmy = 0, scrollT = 0;
 let dragging = false, dragMoved = false, dragX = 0, dragStart = 0;
-const radius = () => innerWidth > 1080 ? Math.min(innerWidth * 0.24, 400) : Math.min(innerWidth * 0.34, 520);
+const radius = () => innerWidth > 1080 ? Math.min(innerWidth * 0.24, 400) : Math.min(innerWidth * 0.3, 340);
 
 function goTo(i) {
   auto = false; clearTimeout(goTo.t);
