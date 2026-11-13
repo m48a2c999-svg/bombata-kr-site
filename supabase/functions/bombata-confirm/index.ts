@@ -1,5 +1,5 @@
 // 봄바타 코리아 — 토스페이먼츠 결제 승인 + 재고 차감 + 주문 기록 (Supabase Edge Function)
-// 비밀 값: TOSS_SECRET_KEY (Edge Functions > Secrets). 코드에 쓰지 않음.
+// 비밀 값: TOSS_SECRET_KEY, (선택) RESEND_API_KEY · NOTIFY_EMAIL · NOTIFY_FROM (Edge Functions > Secrets). 코드에 쓰지 않음.
 // JWT 검증 끔(브라우저에서 바로 호출). 금액은 아래 가격표로 서버에서 다시 계산.
 // 원본: github.com/m48a2c999-svg/bombata-kr-site supabase/functions/bombata-confirm/index.ts
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -16,6 +16,36 @@ const SHIPPING_FEE = 0;
 const ALLOWED = ["https://www.bombata.kr", "https://bombata.kr", "https://m48a2c999-svg.github.io"];
 
 const s = (v: unknown, max = 200) => (typeof v === "string" ? v.slice(0, max) : null);
+
+// 주문 알림 메일 (Resend). 비밀 값 RESEND_API_KEY, NOTIFY_EMAIL(쉼표로 여러 개) 이 있을 때만 보냄.
+// NOTIFY_FROM 이 없으면 Resend 기본 발신 주소(onboarding@resend.dev) 사용 → 이 경우 Resend 가입 메일 주소로만 도착.
+const esc = (v: unknown) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+const won = (n: number) => n.toLocaleString("ko-KR") + "원";
+async function notifyOrder(row: Record<string, any>) {
+  const key = Deno.env.get("RESEND_API_KEY"), to = (Deno.env.get("NOTIFY_EMAIL") ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  if (!key || !to.length) return;
+  const from = Deno.env.get("NOTIFY_FROM") || "봄바타 주문알림 <onboarding@resend.dev>";
+  const items = (row.items ?? []) as any[];
+  const lines = items.map((i) => `<tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(i.code)} ${esc(i.name)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(i.color)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right">${esc(i.q)}개</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right">${won((i.price ?? 0) * (i.q ?? 0))}</td></tr>`).join("");
+  const test = row.test_mode ? " (테스트 결제)" : "";
+  const html = `<div style="font-family:sans-serif;font-size:14px;color:#1c1b19;max-width:640px">
+    <h2 style="margin:0 0 6px">새 주문이 들어왔습니다${test}</h2>
+    <p style="margin:0 0 16px;color:#666">${esc(row.order_id)} · ${esc(row.method ?? "")} · ${row.preorder ? "사전예약" : "일반"}</p>
+    <table style="border-collapse:collapse;width:100%">${lines}
+      <tr><td colspan="3" style="padding:10px;text-align:right;font-weight:bold">결제 금액</td><td style="padding:10px;text-align:right;font-weight:bold">${won(row.amount)}</td></tr></table>
+    <h3 style="margin:20px 0 6px">받는 분</h3>
+    <p style="margin:0;line-height:1.7">${esc(row.customer_name)} · ${esc(row.customer_phone)} · ${esc(row.customer_email)}<br>(${esc(row.ship_zip)}) ${esc(row.ship_addr1)} ${esc(row.ship_addr2)}${row.ship_memo ? `<br>배송 메모: ${esc(row.ship_memo)}` : ""}</p>
+    <p style="margin:22px 0 0"><a href="https://www.bombata.kr/admin.html" style="background:#1c1b19;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">관리자 화면에서 출고 처리</a></p></div>`;
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from, to, subject: `[봄바타] 새 주문 ${won(row.amount)} · ${row.customer_name ?? ""}${test}`, html }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) console.error("notify failed", r.status, await r.text());
+  } catch (e) { console.error("notify error", String(e)); }
+}
 
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin") ?? "";
@@ -98,10 +128,12 @@ Deno.serve(async (req) => {
     await db.from("bombata_orders").upsert({ ...base, status: "FAILED", stock_taken: false, error_code: s(data.code, 80), error_message: s(data.message, 300), raw: data });
     return out(res.status, { message: data.message ?? "승인 실패", code: data.code });
   }
-  const { error } = await db.from("bombata_orders").upsert({
+  const done = {
     ...base, status: "DONE", stock_taken: true, method: s(data.method, 40), approved_at: data.approvedAt ?? null,
     receipt_url: data.receipt?.url ?? null, raw: data,
-  });
+  };
+  const { error } = await db.from("bombata_orders").upsert(done);
   if (error) console.error("order save failed", orderId, error.message);
+  await notifyOrder(done);
   return out(200, { message: "OK", orderId, method: data.method, approvedAt: data.approvedAt, receiptUrl: data.receipt?.url ?? null });
 });
