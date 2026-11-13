@@ -15,13 +15,13 @@ alter table public.bombata_stock enable row level security;
 revoke all on table public.bombata_stock from anon, authenticated;
 comment on table public.bombata_stock is '봄바타 코리아(bombata.kr) 컬러별 재고. 연링크 앱과 무관.';
 
--- 초기 수량(임시값 20개). 실제 발주 수량이 정해지면 관리자 페이지에서 바꾸세요.
+-- 초기 수량(2026-11-13 대표 지시로 컬러별 25개). 실제 발주 수량이 정해지면 관리자 페이지에서 바꾸세요.
 insert into public.bombata_stock (product_id, color_key, qty) values
-  ('nylon-20','nero',20), ('nylon-20','blu',20), ('nylon-20','rosso',20), ('nylon-20','verde',20),
-  ('eco-camoscio','tortora',20), ('eco-camoscio','blu',20), ('eco-camoscio','khaki',20),
-  ('denim','jeans',20), ('denim','nero',20), ('denim','rosso',20), ('denim','rosa',20),
-  ('camo','multi',20), ('camo','khaki',20), ('camo','petrol',20),
-  ('taormina','giallo',20)
+  ('nylon-20','nero',25), ('nylon-20','blu',25), ('nylon-20','rosso',25), ('nylon-20','verde',25),
+  ('eco-camoscio','tortora',25), ('eco-camoscio','blu',25), ('eco-camoscio','khaki',25),
+  ('denim','jeans',25), ('denim','nero',25), ('denim','rosso',25), ('denim','rosa',25),
+  ('camo','multi',25), ('camo','khaki',25), ('camo','petrol',25),
+  ('taormina','giallo',25)
 on conflict (product_id, color_key) do nothing;
 
 -- 주문 출고 관리 칸
