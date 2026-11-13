@@ -265,7 +265,7 @@ footer{background:#14130f;color:#a9a191;font-size:12px;line-height:1.9;padding:8
 .checkout.on{opacity:1;pointer-events:auto;transform:none}
 .co-hd{position:sticky;top:0;background:rgba(250,247,241,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:2}
 .co-hd .wrap{display:flex;justify-content:space-between;align-items:center;height:68px}
-.co-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:56px;padding:48px 0 100px}
+.co-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:56px;padding-top:48px;padding-bottom:100px}
 .co-grid h2{font-family:var(--serif);font-weight:400;font-size:34px;margin-bottom:24px}
 .co-grid h4{font-size:13px;letter-spacing:.12em;color:var(--ink2);margin:32px 0 14px;font-weight:500}
 .f{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -336,6 +336,11 @@ footer{background:#14130f;color:#a9a191;font-size:12px;line-height:1.9;padding:8
 }
 /* 제품 누끼 사진의 연회색 배경을 흰색으로 정리 */
 .orb .card img,.pmedia img.main,.m-main img:not(.cover),.ci .th img,.m-thumbs img[style*=multiply]{filter:brightness(1.055) contrast(1.04)}
+.lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.lang button{font-size:11px;letter-spacing:.08em;padding:6px 9px;color:var(--ink2);transition:all .2s}
+.lang button.on{background:var(--ink);color:#fff}
+.lang button:hover:not(.on){color:var(--ink)}
+@media (max-width:720px){.lang button{padding:5px 7px;font-size:10px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -354,6 +359,7 @@ footer{background:#14130f;color:#a9a191;font-size:12px;line-height:1.9;padding:8
       <a href="#faq">FAQ</a>
     </nav>
     <div class="hd-right">
+      <span id="langSlot"></span>
       <button class="cart-btn" id="cartOpen" aria-label="장바구니 열기">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>
         <span class="cart-count" id="cartCount">0</span>
@@ -590,13 +596,17 @@ footer{background:#14130f;color:#a9a191;font-size:12px;line-height:1.9;padding:8
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastBtn">장바구니 보기</button></div>
 
+<script src="assets/i18n.js"></script>
 <script src="assets/products.js"></script>
 <script>
 (() => {
 'use strict';
 const P = window.PRODUCTS, S = window.SITE, IMG = window.IMG;
 const $ = (s, r = document) => r.querySelector(s);
-const won = n => n.toLocaleString('ko-KR') + '원';
+const L = window.I18N, t = L.t, won = L.won, pN = p => L.p(p, 'name'), pT = p => L.p(p, 'tagline'), cN = c => L.c(c);
+L.apply();
+$('#langSlot').innerHTML = L.switcher();
+$('#langSlot').addEventListener('click', e => { const b = e.target.closest('[data-lang]'); if (b) L.set(b.dataset.lang); });
 const store = {
   get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
@@ -604,9 +614,10 @@ const store = {
 const isPre = S.mode === 'preorder';
 
 /* ---------- announcement ---------- */
-const annItems = ['이탈리아 프라토 디자인 노트북 가방', '이탈리아 본사 직수입 · 엘모컴퍼니', '전 상품 무료배송', isPre ? S.preorderNotice : '정품 보증 · 국내 A/S', '패브릭 컬렉션 5종 공개'];
+const PRE = t('preorder');
+const annItems = [...t('ann')]; annItems.splice(3, 0, isPre ? PRE : t('live'));
 $('#annTrack').innerHTML = [...annItems, ...annItems].map(t => `<span>${t}</span>`).join('');
-$('#poPill').textContent = isPre ? S.preorderNotice : '본사 직수입 · 국내 재고 출고';
+$('#poPill').textContent = isPre ? PRE : t('live');
 $('#ftStore').href = S.smartstoreHome;
 
 /* ---------- header shadow ---------- */
@@ -619,7 +630,7 @@ const stage = $('#stage'), hero = $('#hero'), bgWord = $('#bgWord');
 const orbs = P.map((p, i) => {
   const el = document.createElement('div');
   el.className = 'orb';
-  el.innerHTML = `<div class="card"><img src="${IMG(p.colors[0].img, 800)}" alt="봄바타 ${p.name}" draggable="false"></div><div class="shadow"></div>`;
+  el.innerHTML = `<div class="card"><img src="${IMG(p.colors[0].img, 800)}" alt="Bombata ${pN(p)}" draggable="false"></div><div class="shadow"></div>`;
   el.addEventListener('click', () => { if (dragMoved) return; (i === frontIdx) ? openModal(p.id) : goTo(i); });
   stage.appendChild(el);
   return el;
@@ -688,7 +699,7 @@ function frame() {
     const p = P[bi];
     $('#nowIdx').textContent = `${String(bi + 1).padStart(2, '0')} / ${String(N).padStart(2, '0')}`;
     $('#nowName').textContent = p.en;
-    $('#nowSub').textContent = `${p.name} · ${p.tagline}`;
+    $('#nowSub').textContent = L.lang === 'ko' ? `${p.name} · ${p.tagline}` : pT(p);
     $('#nowPrice').textContent = won(p.price);
     lastFront = bi;
   }
@@ -706,17 +717,17 @@ grid.innerHTML = P.map(p => `
       <div class="pmedia" data-open="${p.id}">
         ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
         <span class="zoomhint"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4M11 8v6M8 11h6"/></svg></span>
-        <img class="main" src="${IMG(p.colors[0].img, 1200)}" alt="봄바타 ${p.name} ${p.colors[0].name}" loading="lazy" draggable="false">
+        <img class="main" src="${IMG(p.colors[0].img, 1200)}" alt="Bombata ${pN(p)} ${cN(p.colors[0])}" loading="lazy" draggable="false">
         <div class="quick">
-          <button data-open="${p.id}">자세히 보기</button>
-          <button class="dark" data-add="${p.id}">장바구니 담기</button>
+          <button data-open="${p.id}">${t('details')}</button>
+          <button class="dark" data-add="${p.id}">${t('addCart')}</button>
         </div>
       </div>
       <div class="pinfo">
-        <h3>${p.en}<small>${p.name} · ${p.tagline}</small></h3>
+        <h3>${p.en}<small>${L.lang === 'ko' ? `${p.name} · ${p.tagline}` : pT(p)}</small></h3>
         <div class="pr">${won(p.price)}<small>${p.size}</small></div>
       </div>
-      <div class="swatches">${p.colors.map((c, i) => `<button class="sw ${i ? '' : 'on'}" style="background:${c.hex}" data-sw="${i}" aria-label="${c.name}" title="${c.name}"></button>`).join('')}</div>
+      <div class="swatches">${p.colors.map((c, i) => `<button class="sw ${i ? '' : 'on'}" style="background:${c.hex}" data-sw="${i}" aria-label="${cN(c)}" title="${cN(c)}"></button>`).join('')}</div>
     </div>
   </article>`).join('');
 
@@ -740,7 +751,7 @@ grid.querySelectorAll('.pcard').forEach(card => {
     const i = +b.dataset.sw; card.dataset.ci = i;
     card.querySelectorAll('.sw').forEach(s => s.classList.toggle('on', s === b));
     img.style.opacity = 0;
-    setTimeout(() => { img.src = IMG(p.colors[i].img, 1200); img.alt = `봄바타 ${p.name} ${p.colors[i].name}`; img.onload = () => img.style.opacity = 1; }, 180);
+    setTimeout(() => { img.src = IMG(p.colors[i].img, 1200); img.alt = `Bombata ${pN(p)} ${cN(p.colors[i])}`; img.onload = () => img.style.opacity = 1; }, 180);
   }));
   card.addEventListener('click', e => {
     const add = e.target.closest('[data-add]'), open = e.target.closest('[data-open]');
@@ -752,8 +763,8 @@ grid.querySelectorAll('.pcard').forEach(card => {
 /* ---------- material row ---------- */
 $('#matRow').innerHTML = P.map(p => `
   <div class="mat-item rv" data-open="${p.id}">
-    <img src="${IMG(p.matImg || p.gallery[0], 900)}" alt="${p.name} 디테일" loading="lazy">
-    <div class="cap"><b>${p.en}</b><span>${p.tagline}</span></div>
+    <img src="${IMG(p.matImg || p.gallery[0], 900)}" alt="${pN(p)} ${t('detail')}" loading="lazy">
+    <div class="cap"><b>${p.en}</b><span>${pT(p)}</span></div>
   </div>`).join('');
 $('#matRow').addEventListener('click', e => { const m = e.target.closest('[data-open]'); if (m) openModal(m.dataset.open); });
 $('#storyImg').src = window.STORY_IMG || IMG(P[1].gallery[1], 1200); // 에코 카모시오 착용컷
@@ -771,20 +782,21 @@ function openModal(id, ci = 0) {
   cur = P.find(p => p.id === id); curColor = ci; qty = 1;
   $('#mEn').textContent = cur.en.toUpperCase();
   $('#mCode').textContent = cur.size;
-  $('#mName').textContent = cur.name;
-  $('#mTag').textContent = cur.tagline;
-  $('#mPrice').innerHTML = `${won(cur.price)}<small>무료배송</small>`;
-  $('#mDesc').textContent = cur.story;
+  $('#mName').textContent = pN(cur);
+  $('#mTag').textContent = pT(cur);
+  $('#mPrice').innerHTML = `${won(cur.price)}<small>${t('freeShip')}</small>`;
+  $('#mDesc').textContent = L.p(cur, 'story');
   $('#qVal').textContent = 1;
-  $('#mSw').innerHTML = cur.colors.map((c, i) => `<button class="sw ${i === ci ? 'on' : ''}" style="background:${c.hex}" data-i="${i}" aria-label="${c.name}" title="${c.name}"></button>`).join('');
+  $('#mSw').innerHTML = cur.colors.map((c, i) => `<button class="sw ${i === ci ? 'on' : ''}" style="background:${c.hex}" data-i="${i}" aria-label="${cN(c)}" title="${cN(c)}"></button>`).join('');
   const nav = $('#mNaver');
   if (cur.smartstore) { nav.href = cur.smartstore; nav.style.display = ''; } else { nav.href = S.smartstoreHome; nav.style.display = 'none'; }
   $('#mPo').style.display = isPre ? '' : 'none';
-  $('#mPo').textContent = isPre ? `사전예약 상품입니다 · ${S.preorderNotice}. 출고 전 전액 환불 가능.` : '';
-  $('#mBuy').textContent = isPre ? '사전예약 구매' : '바로 구매';
+  $('#mPo').textContent = isPre ? t('poNote', { n: PRE }) : '';
+  $('#mBuy').textContent = isPre ? t('buyPre') : t('buy');
+  const SL = t('spec');
   $('#mSpec').innerHTML = [
-    ['소재', cur.material], ['사이즈', `${cur.size} 노트북용`], ['외형', cur.dims], ['노트북 수납부', cur.laptop],
-    ['무게', cur.weight], ['구성', '본체 + 동일 컬러 숄더 스트랩'], ['디자인', '이탈리아 (Extreme Design srl, Prato)'], ['제조국', '중국 (본사 관리 협력공장)'],
+    [SL[0], L.p(cur, 'material')], [SL[1], t('forLaptop', { s: cur.size })], [SL[2], cur.dims], [SL[3], cur.dims && L.lang === 'ko' ? cur.laptop : '38 × 26 cm'],
+    [SL[4], t('weight')], [SL[5], t('box')], [SL[6], t('design')], [SL[7], t('madeIn')],
   ].map(([a, b]) => `<div><span>${a}</span><span>${b}</span></div>`).join('');
   setColor(ci);
   modal.classList.add('on'); dim.classList.add('on'); document.body.style.overflow = 'hidden';
@@ -806,7 +818,7 @@ function showImg(src, cover) {
 }
 function setColor(i) {
   curColor = i;
-  $('#mColorName').textContent = `${cur.colors[i].name} (${cur.colors[i].it})`;
+  $('#mColorName').textContent = L.lang === 'it' ? cur.colors[i].it : `${cN(cur.colors[i])} (${cur.colors[i].it})`;
   $('#mSw').querySelectorAll('.sw').forEach((s, k) => s.classList.toggle('on', k === i));
   showImg(cur.colors[i].img, false); thumbs();
 }
@@ -842,7 +854,7 @@ function addToCart(id, ci, q, silent) {
   ex ? ex.q = Math.min(10, ex.q + q) : cart.push({ id, ci, q });
   saveCart();
   const c = $('#cartCount'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
-  if (!silent) toast(`${findP(id).name} · ${findP(id).colors[ci].name} 담았습니다`);
+  if (!silent) toast(t('added', { p: pN(findP(id)), c: cN(findP(id).colors[ci]) }));
 }
 function totals() {
   const sub = cart.reduce((s, l) => s + findP(l.id).price * l.q, 0);
@@ -853,21 +865,21 @@ function lineHTML(l, k, editable) {
   const p = findP(l.id), c = p.colors[l.ci];
   return `<div class="ci">
     <div class="th"><img src="${IMG(c.img, 240)}" alt=""></div>
-    <div><h4>${p.en}</h4><p>${p.name} · ${c.name} · ${p.size}</p>
-      ${editable ? `<div class="qty"><button data-dq="${k}" aria-label="감소">−</button><span>${l.q}</span><button data-iq="${k}" aria-label="증가">+</button></div>` : `<p>수량 ${l.q}개</p>`}</div>
-    <div class="r">${won(p.price * l.q)}${editable ? `<button class="rm" data-rm="${k}">삭제</button>` : ''}</div>
+    <div><h4>${p.en}</h4><p>${L.lang === 'ko' ? p.name + ' · ' : ''}${cN(c)} · ${p.size}</p>
+      ${editable ? `<div class="qty"><button data-dq="${k}" aria-label="-">−</button><span>${l.q}</span><button data-iq="${k}" aria-label="+">+</button></div>` : `<p>${t('qtyN', { n: l.q })}</p>`}</div>
+    <div class="r">${won(p.price * l.q)}${editable ? `<button class="rm" data-rm="${k}">${t('remove')}</button>` : ''}</div>
   </div>`;
 }
 function renderCart() {
-  const t = totals();
-  $('#cartCount').textContent = t.count;
+  const tt = totals();
+  $('#cartCount').textContent = tt.count;
   $('#drBody').innerHTML = cart.length ? cart.map((l, k) => lineHTML(l, k, true)).join('')
-    : `<div class="dr-empty"><b>Vuoto</b>장바구니가 비어 있습니다</div>`;
-  $('#drSub').textContent = won(t.sub);
-  $('#drShip').textContent = t.ship ? won(t.ship) : '무료';
-  $('#drTotal').textContent = won(t.total);
+    : `<div class="dr-empty"><b>Vuoto</b>${t('empty')}</div>`;
+  $('#drSub').textContent = won(tt.sub);
+  $('#drShip').textContent = tt.ship ? won(tt.ship) : t('free');
+  $('#drTotal').textContent = won(tt.total);
   $('#toCheckout').disabled = !cart.length;
-  $('#toCheckout').textContent = isPre ? '사전예약 주문하기' : '주문하기';
+  $('#toCheckout').textContent = isPre ? t('orderPre') : t('order');
 }
 $('#drBody').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -901,17 +913,18 @@ const canRedirect = /^https?:$/.test(location.protocol);
 
 async function openCheckout() {
   if (!cart.length) return;
-  const t = totals();
+  const tt = totals();
   $('#coItems').innerHTML = cart.map((l, k) => lineHTML(l, k, false)).join('');
-  $('#coSub').textContent = won(t.sub);
-  $('#coShip').textContent = t.ship ? won(t.ship) : '무료';
-  $('#coTotal').textContent = won(t.total);
-  $('#payBtn').textContent = `${won(t.total)} ${isPre ? '사전예약 ' : ''}결제하기`;
-  $('#poAgree').textContent = isPre ? `(사전예약 상품: ${S.preorderNotice})` : '';
+  $('#coSub').textContent = won(tt.sub);
+  $('#coShip').textContent = tt.ship ? won(tt.ship) : t('free');
+  $('#coTotal').textContent = won(tt.total);
+  $('#payBtn').textContent = t('pay', { a: won(tt.total), p: isPre ? t('payPre') : '' });
+  $('#poAgree').textContent = isPre ? t('poAgree', { n: PRE }) : '';
   const notes = [];
   if (S.previewNote) notes.push(S.previewNote);
-  if (isTest) notes.push('<b>테스트 결제 모드</b> — 토스페이먼츠 테스트 키로 동작합니다. 실제 카드 승인·출금이 일어나지 않습니다.');
-  if (!canRedirect) notes.push('⚠️ 파일로 직접 연 상태에서는 결제 완료 페이지로 이동할 수 없습니다. 도메인(bombata.kr)에 배포한 뒤 결제를 테스트하세요.');
+  if (isTest) notes.push(t('testMode'));
+  if (t('koreaOnly')) notes.push(t('koreaOnly'));
+  if (!canRedirect) notes.push(t('fileMode'));
   $('#testBar').innerHTML = notes.join('<br>'); $('#testBar').style.display = notes.length ? '' : 'none';
   $('#checkout').classList.add('on'); document.body.style.overflow = 'hidden';
   $('#checkout').scrollTop = 0;
@@ -921,18 +934,18 @@ async function openCheckout() {
       let ck = store.get('bk_ck', null);
       if (!ck) { ck = 'bk_' + crypto.getRandomValues(new Uint32Array(3)).join('').slice(0, 24); store.set('bk_ck', ck); }
       widgets = TossPayments(S.tossClientKey).widgets({ customerKey: ck });
-      await widgets.setAmount({ currency: 'KRW', value: t.total });
+      await widgets.setAmount({ currency: 'KRW', value: tt.total });
       await Promise.all([
         widgets.renderPaymentMethods({ selector: '#payment-method', variantKey: 'DEFAULT' }),
         widgets.renderAgreement({ selector: '#agreement', variantKey: 'AGREEMENT' }),
       ]);
       widgetReady = true;
     } else {
-      await widgets.setAmount({ currency: 'KRW', value: t.total });
+      await widgets.setAmount({ currency: 'KRW', value: tt.total });
     }
   } catch (err) {
     console.error(err);
-    $('#payment-method').innerHTML = `<div class="testbar" style="margin:0 12px">결제 모듈을 불러오지 못했습니다. 인터넷 연결을 확인하거나 잠시 후 다시 시도해주세요.<br>또는 <a href="${S.smartstoreHome}" target="_blank" rel="noopener" style="text-decoration:underline">네이버 스마트스토어</a>에서 구매하실 수 있습니다.</div>`;
+    $('#payment-method').innerHTML = `<div class="testbar" style="margin:0 12px">${t('payLoadErr')}<br>${t('orStore', { a: `<a href="${S.smartstoreHome}" target="_blank" rel="noopener" style="text-decoration:underline">${t('store')}</a>` })}</div>`;
   }
 }
 function closeCheckout() { $('#checkout').classList.remove('on'); document.body.style.overflow = ''; }
@@ -943,7 +956,7 @@ $('#addrBtn').onclick = async () => {
   try {
     await loadScript('https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js');
     new daum.Postcode({ oncomplete: d => { $('#oZip').value = d.zonecode; $('#oAddr1').value = d.roadAddress || d.jibunAddress; $('#oAddr2').focus(); } }).open();
-  } catch { $('#oZip').readOnly = false; $('#oAddr1').readOnly = false; $('#coErr').textContent = '주소 검색을 불러오지 못했습니다. 직접 입력해주세요.'; }
+  } catch { $('#oZip').readOnly = false; $('#oAddr1').readOnly = false; $('#coErr').textContent = t('addrErr'); }
 };
 $('#oPhone').addEventListener('input', e => {
   const d = e.target.value.replace(/\D/g, '').slice(0, 11);
@@ -954,20 +967,20 @@ $('#coForm').addEventListener('submit', async e => {
   e.preventDefault();
   const err = $('#coErr'); err.textContent = '';
   const v = id => $('#' + id).value.trim();
-  if (!v('oName')) return err.textContent = '이름을 입력해주세요.';
-  if (!/^01\d-?\d{3,4}-?\d{4}$/.test(v('oPhone'))) return err.textContent = '휴대폰 번호를 확인해주세요.';
-  if (!/^\S+@\S+\.\S+$/.test(v('oEmail'))) return err.textContent = '이메일을 확인해주세요.';
-  if (!v('oZip') || !v('oAddr1') || !v('oAddr2')) return err.textContent = '배송지를 모두 입력해주세요.';
-  if (!$('#agreeMine').checked) return err.textContent = '주문 및 약관 동의에 체크해주세요.';
-  if (!widgetReady) return err.textContent = '결제 모듈이 준비되지 않았습니다.';
-  if (!canRedirect) return err.textContent = '파일로 연 상태에서는 결제를 진행할 수 없습니다. bombata.kr 배포 후 이용해주세요.';
-  const t = totals();
+  if (!v('oName')) return err.textContent = t('eName');
+  if (!/^01\d-?\d{3,4}-?\d{4}$/.test(v('oPhone'))) return err.textContent = t('ePhone');
+  if (!/^\S+@\S+\.\S+$/.test(v('oEmail'))) return err.textContent = t('eEmail');
+  if (!v('oZip') || !v('oAddr1') || !v('oAddr2')) return err.textContent = t('eAddr');
+  if (!$('#agreeMine').checked) return err.textContent = t('eAgree');
+  if (!widgetReady) return err.textContent = t('eWidget');
+  if (!canRedirect) return err.textContent = t('eFile');
+  const tt = totals();
   const d = new Date(), pad = n => String(n).padStart(2, '0');
   const orderId = `BK${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   const first = findP(cart[0].id);
-  const orderName = (isPre ? '[사전예약] ' : '') + `봄바타 ${first.name}` + (t.count > 1 ? ` 외 ${t.count - 1}건` : '');
+  const orderName = (isPre ? '[사전예약] ' : '') + `봄바타 ${first.name}` + (tt.count > 1 ? ` 외 ${tt.count - 1}건` : '');
   const order = {
-    orderId, orderName, amount: t.total, createdAt: d.toISOString(), preorder: isPre,
+    orderId, orderName, amount: tt.total, createdAt: d.toISOString(), preorder: isPre,
     items: cart.map(l => ({ id: l.id, code: findP(l.id).code, name: findP(l.id).name, color: findP(l.id).colors[l.ci].name, colorKey: findP(l.id).colors[l.ci].key, q: l.q, price: findP(l.id).price })),
     customer: { name: v('oName'), phone: v('oPhone'), email: v('oEmail') },
     ship: { zip: v('oZip'), addr1: v('oAddr1'), addr2: v('oAddr2'), memo: v('oMemo') },
@@ -989,7 +1002,7 @@ $('#coForm').addEventListener('submit', async e => {
       },
     });
   } catch (ex) {
-    err.textContent = ex && ex.message ? ex.message : '결제가 취소되었습니다.';
+    err.textContent = ex && ex.message ? ex.message : t('cancelled');
   } finally { $('#payBtn').disabled = false; }
 });
 

@@ -29,6 +29,9 @@ code{font-size:12px;background:#f4f1ea;padding:2px 6px;border-radius:6px}
 </div>
 <script>
 const q = new URLSearchParams(location.search);
+const LANG = (() => { try { return localStorage.getItem('bk_lang') || 'ko'; } catch { return 'ko'; } })();
+const FX = { en: ['Payment was <em>not completed</em>', 'Your cart has been kept. Please try again or contact +82-2-3482-2701.', 'Back to cart'], ja: ['決済が<em>完了しません</em>でした', 'カートはそのまま残っています。もう一度お試しいただくか、+82-2-3482-2701 までお問い合わせください。', 'カートに戻る'], it: ['Pagamento <em>non completato</em>', 'Il carrello è stato conservato. Riprova o contatta +82-2-3482-2701.', 'Torna al carrello'] }[LANG];
+if (FX) { document.documentElement.lang = LANG; document.querySelector('h1').innerHTML = FX[0]; document.querySelectorAll('p')[1].textContent = FX[1]; document.querySelector('.btn').textContent = FX[2]; }
 const msg = q.get('message') || '결제가 취소되었습니다.';
 document.getElementById('m').innerHTML = msg.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])) + (q.get('code') ? ` <code>${q.get('code').replace(/[^\w_-]/g, '')}</code>` : '');
 </script>
