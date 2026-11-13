@@ -40,6 +40,10 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .trk{width:150px}
 .saved{color:#24683a;font-size:12px;margin-left:6px}
 .note{font-size:12px;color:#7a7468;line-height:1.7;margin-top:10px}
+tr.sub td{background:#fbf9f5;font-weight:600}
+tr.tot td{background:#1c1b19;color:#fff;font-weight:700}
+.bar{position:relative;height:6px;background:#eee8dc;border-radius:3px;min-width:70px;margin-top:4px}.bar i{position:absolute;left:0;top:0;bottom:0;background:#a8874f;border-radius:3px}
+.nav{display:flex;gap:6px;margin-top:22px;flex-wrap:wrap}.nav a{font-size:13px;padding:7px 14px;border-radius:999px;background:#fff;box-shadow:0 0 0 1px #e6dfd2;color:#1c1b19;text-decoration:none}
 @media (max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -56,11 +60,22 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     <span style="margin-left:auto" class="tools"><a class="btn line sm" href="./" target="_blank" style="display:inline-flex;align-items:center;text-decoration:none">홈페이지 보기</a><button class="btn sm" id="reload">새로고침</button><button class="btn line sm" id="logout">로그아웃</button></span>
   </h1>
   <div class="kpis" id="kpis"></div>
+  <div class="nav"><a href="#sec-report">판매·재고 현황표</a><a href="#sec-daily">일별 매출</a><a href="#sec-stock">재고 수정</a><a href="#sec-orders">주문·출고</a></div>
 
-  <h2>컬러별 재고 <span class="tools small">남은 수량을 고치고 저장하면 홈페이지에 바로 반영됩니다(최대 1분). 0이면 '품절'로 표시됩니다.</span></h2>
+  <h2 id="sec-report">판매·재고 현황표 <span class="tools">
+    <label><input type="checkbox" id="rTest"> 테스트 결제 포함</label>
+    <button class="btn line sm" id="csvFactory">공장 발주용 CSV</button>
+  </span></h2>
+  <div class="card"><table><thead><tr><th>코드</th><th>상품</th><th>컬러</th><th>공장 표기</th><th class="num">배정 수량</th><th class="num">판매</th><th class="num">남은 재고</th><th>판매율</th><th class="num">매출</th><th>상태</th><th class="num">보충 제안</th></tr></thead><tbody id="report"></tbody></table></div>
+  <p class="note">· 배정 수량 = 남은 재고 + 홈페이지 판매 누적. 판매·매출은 결제완료 주문 기준이며 취소·환불완료는 뺍니다. 판매가는 한국 판매가(제품별 products.js) 기준입니다.<br>· 보충 제안: 남은 재고가 마감 임박 기준 이하일 때, 판매된 만큼을 다시 들여오는 수량입니다. 공장 발주용 CSV에는 공장 코드와 이탈리아어 컬러명이 들어갑니다.</p>
+
+  <h2 id="sec-daily">일별 매출 <span class="tools small">최근 14일 · 결제완료 기준</span></h2>
+  <div class="card"><table><thead><tr><th>날짜</th><th class="num">주문</th><th class="num">판매 수량</th><th class="num">매출</th><th style="width:40%"></th></tr></thead><tbody id="daily"></tbody></table></div>
+
+  <h2 id="sec-stock">컬러별 재고 수정 <span class="tools small">남은 수량을 고치고 저장하면 홈페이지에 바로 반영됩니다(최대 1분). 0이면 '품절'로 표시됩니다.</span></h2>
   <div class="card"><table><thead><tr><th>상품</th><th>코드</th><th>컬러</th><th class="num">남은 수량</th><th class="num">홈페이지 판매 누적</th><th>홈페이지 표시</th><th></th></tr></thead><tbody id="stock"></tbody></table></div>
 
-  <h2>주문 · 출고 <span class="tools">
+  <h2 id="sec-orders">주문 · 출고 <span class="tools">
     <select id="fStatus"><option value="DONE">결제완료만</option><option value="ALL">전체(실패·대기 포함)</option></select>
     <select id="fFul"><option value="">출고상태 전체</option></select>
     <label><input type="checkbox" id="fTest" checked> 테스트 결제 포함</label>
@@ -104,22 +119,24 @@ $('logout').onclick = () => { sessionStorage.removeItem('bk_admin'); location.re
 $('reload').onclick = () => load().catch(ex => alert(ex.message));
 FUL.forEach(f => $('fFul').insertAdjacentHTML('beforeend', `<option>${f}</option>`));
 ['fStatus', 'fFul', 'fTest'].forEach(id => $(id).onchange = renderOrders);
+$('rTest').onchange = () => { renderReport(); renderDaily(); };
 
-function render() { renderKpis(); renderStock(); renderOrders(); }
+function render() { renderKpis(); renderReport(); renderDaily(); renderStock(); renderOrders(); }
 function renderKpis() {
   const done = DATA.orders.filter(o => o.status === 'DONE');
-  const real = done.filter(o => !o.test_mode);
+  const real = salesOrders(false), withTest = salesOrders(true);
   const today = new Date().toDateString();
   const out = DATA.stock.filter(s => s.qty === 0).length;
   const left = DATA.stock.reduce((a, s) => a + s.qty, 0);
+  const qty = os => os.reduce((a, o) => a + (o.items || []).reduce((b, i) => b + i.q, 0), 0);
   const k = [
-    ['오늘 결제', done.filter(o => new Date(o.created_at).toDateString() === today).length + '건'],
-    ['실결제 매출(누적)', won(real.reduce((a, o) => a + o.amount, 0))],
-    ['출고 대기', done.filter(o => (o.fulfillment || '출고대기') === '출고대기' || o.fulfillment === '출고준비').length + '건'],
-    ['남은 재고(전체)', left + '개'],
-    ['품절 컬러', out + '개'],
+    ['실결제 매출(누적)', won(real.reduce((a, o) => a + o.amount, 0)), `테스트 포함 ${won(withTest.reduce((a, o) => a + o.amount, 0))}`],
+    ['판매 수량(실결제)', qty(real) + '개', `테스트 포함 ${qty(withTest)}개`],
+    ['오늘 결제', done.filter(o => new Date(o.created_at).toDateString() === today).length + '건', ''],
+    ['출고 대기', done.filter(o => ['출고대기', '출고준비'].includes(o.fulfillment || '출고대기')).length + '건', ''],
+    ['남은 재고', left + '개', `품절 컬러 ${out}개`],
   ];
-  $('kpis').innerHTML = k.map(([a, b]) => `<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join('');
+  $('kpis').innerHTML = k.map(([a, b, c]) => `<div class="kpi"><span>${a}</span><b>${b}</b>${c ? `<span>${c}</span>` : ''}</div>`).join('');
 }
 function renderStock() {
   const LOW = S.lowStockAt || 5;
@@ -144,7 +161,7 @@ $('stock').addEventListener('click', async e => {
     const { row } = await api({ action: 'setStock', product_id: pid, color_key: ck, qty });
     const i = DATA.stock.findIndex(x => x.product_id === pid && x.color_key === ck);
     i >= 0 ? DATA.stock[i] = row : DATA.stock.push(row);
-    renderKpis(); renderStock();
+    renderKpis(); renderReport(); renderStock();
     const sv = $('stock').querySelector(`[data-save="${pid}|${ck}"]`).nextElementSibling; sv.textContent = '저장됨';
   } catch (ex) { alert(ex.message); b.disabled = false; }
 });
@@ -182,6 +199,76 @@ $('orders').addEventListener('change', async e => {
     if (tr) { await api({ action: 'setOrder', order_id: tr.dataset.trk, tracking: tr.value.trim() }); const o = DATA.orders.find(x => x.order_id === tr.dataset.trk); if (o) o.tracking = tr.value.trim(); tr.style.borderColor = '#24683a'; }
   } catch (ex) { alert(ex.message); }
 });
+
+/* ---------- 판매·재고 현황표 (공장 리스트 형식) ---------- */
+const CANCELLED = ['취소', '환불완료'];
+function salesOrders(includeTest) {
+  return DATA.orders.filter(o => o.status === 'DONE' && !CANCELLED.includes(o.fulfillment) && (includeTest || !o.test_mode));
+}
+function salesMap(includeTest) {
+  const m = {};
+  salesOrders(includeTest).forEach(o => (o.items || []).forEach(i => {
+    const k = i.id + '|' + i.colorKey; m[k] = m[k] || { q: 0, rev: 0 };
+    m[k].q += i.q; m[k].rev += (i.price || (findP(i.id) || {}).price || 0) * i.q;
+  }));
+  return m;
+}
+function reportRows() {
+  const LOW = S.lowStockAt || 5, sm = salesMap($('rTest').checked), rows = [];
+  P.forEach(p => {
+    const group = p.colors.map(c => {
+      const st = DATA.stock.find(x => x.product_id === p.id && x.color_key === c.key) || { qty: 0, sold: 0 };
+      const sale = sm[p.id + '|' + c.key] || { q: 0, rev: 0 };
+      const alloc = st.qty + (st.sold || 0);
+      const status = st.qty === 0 ? '품절' : st.qty <= LOW ? '마감 임박' : '판매중';
+      const refill = st.qty <= LOW ? Math.max(0, alloc - st.qty) : 0;
+      return { p, c, alloc, sold: sale.q, left: st.qty, rate: alloc ? sale.q / alloc : 0, rev: sale.rev, status, refill };
+    });
+    rows.push({ p, group });
+  });
+  return rows;
+}
+function renderReport() {
+  const pct = r => (r * 100).toFixed(0) + '%';
+  const tag = s => `<span class="tag ${s === '품절' ? 'bad' : s === '마감 임박' ? 'warn' : 'ok'}">${s}</span>`;
+  const sum = (arr, k) => arr.reduce((a, r) => a + r[k], 0);
+  let html = '', all = [];
+  reportRows().forEach(({ p, group }) => {
+    group.forEach(r => {
+      html += `<tr><td class="small">${esc(p.code)}</td><td>${esc(p.name)}</td><td><span class="dot" style="background:${r.c.hex}"></span>${esc(r.c.name)}</td><td class="small">${esc(r.c.it)}</td>
+        <td class="num">${r.alloc}</td><td class="num">${r.sold}</td><td class="num">${r.left}</td>
+        <td>${pct(r.rate)}<div class="bar"><i style="width:${Math.min(100, r.rate * 100)}%"></i></div></td>
+        <td class="num">${won(r.rev)}</td><td>${tag(r.status)}</td><td class="num">${r.refill || '—'}</td></tr>`;
+    });
+    const a = sum(group, 'alloc'), so = sum(group, 'sold');
+    html += `<tr class="sub"><td></td><td colspan="3">${esc(p.name)} 소계</td><td class="num">${a}</td><td class="num">${so}</td><td class="num">${sum(group, 'left')}</td><td>${a ? pct(so / a) : '0%'}</td><td class="num">${won(sum(group, 'rev'))}</td><td></td><td class="num">${sum(group, 'refill') || '—'}</td></tr>`;
+    all = all.concat(group);
+  });
+  const A = sum(all, 'alloc'), SO = sum(all, 'sold');
+  html += `<tr class="tot"><td></td><td colspan="3">전체 합계 (${all.length}개 컬러)</td><td class="num">${A}</td><td class="num">${SO}</td><td class="num">${sum(all, 'left')}</td><td>${A ? pct(SO / A) : '0%'}</td><td class="num">${won(sum(all, 'rev'))}</td><td></td><td class="num">${sum(all, 'refill') || '—'}</td></tr>`;
+  $('report').innerHTML = html;
+}
+function renderDaily() {
+  const list = salesOrders($('rTest').checked), days = [];
+  for (let i = 13; i >= 0; i--) { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i); days.push(d); }
+  const rows = days.map(d => {
+    const os = list.filter(o => { const t = new Date(o.created_at); return t >= d && t < new Date(d.getTime() + 864e5); });
+    return { d, n: os.length, q: os.reduce((a, o) => a + (o.items || []).reduce((b, i) => b + i.q, 0), 0), rev: os.reduce((a, o) => a + o.amount, 0) };
+  });
+  const max = Math.max(1, ...rows.map(r => r.rev));
+  $('daily').innerHTML = rows.reverse().map(r => `<tr><td>${r.d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}</td><td class="num">${r.n}</td><td class="num">${r.q}</td><td class="num">${won(r.rev)}</td><td><div class="bar" style="height:10px"><i style="width:${r.rev / max * 100}%"></i></div></td></tr>`).join('')
+    + `<tr class="sub"><td>14일 합계</td><td class="num">${rows.reduce((a, r) => a + r.n, 0)}</td><td class="num">${rows.reduce((a, r) => a + r.q, 0)}</td><td class="num">${won(rows.reduce((a, r) => a + r.rev, 0))}</td><td></td></tr>`;
+}
+$('csvFactory').onclick = () => {
+  const head = ['공장코드', '상품', '컬러(한글)', '컬러(공장 표기)', '배정 수량', '판매', '남은 재고', '판매율', '매출(원)', '상태', '보충 제안 수량'];
+  const lines = [head];
+  reportRows().forEach(({ p, group }) => group.forEach(r => lines.push([p.code, p.name, r.c.name, r.c.it, r.alloc, r.sold, r.left, (r.rate * 100).toFixed(0) + '%', r.rev, r.status, r.refill])));
+  const csv = '﻿' + lines.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `봄바타_판매재고_공장리스트_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+};
+
 $('csv').onclick = () => {
   const head = ['주문일시', '주문번호', '받는분', '연락처', '이메일', '우편번호', '주소', '상세주소', '배송메모', '상품코드', '상품명', '컬러', '수량', '금액', '결제수단', '출고상태', '송장번호', '테스트'];
   const lines = [head];
