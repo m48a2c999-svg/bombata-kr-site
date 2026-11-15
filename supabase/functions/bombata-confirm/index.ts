@@ -6,11 +6,13 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // ※ assets/products.js 의 price 와 같게 유지
 const PRICE: Record<string, number> = {
-  "nylon-20": 119000,
-  "eco-camoscio": 119000,
-  "denim": 119000,
-  "camo": 119000,
-  "taormina": 119000,
+  "g100": 159000,
+  "velluto": 159000,
+  "teddy": 159000,
+  "tweed": 159000,
+  "eco-camoscio": 159000,
+  "nylon-20": 159000,
+  "taormina": 159000,
 };
 const SHIPPING_FEE = 0;
 const ALLOWED = ["https://www.bombata.kr", "https://bombata.kr", "https://m48a2c999-svg.github.io"];
