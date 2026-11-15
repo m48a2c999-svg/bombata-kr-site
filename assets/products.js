@@ -212,5 +212,12 @@ window.LOOKBOOK = [
   { id: 'eco-camoscio', ci: 0, img: 'bombata_Eco-Camoscio_g02.webp' },
   { id: 'eco-camoscio', ci: 0, img: 'bombata_Eco-Camoscio_g04.webp' },
 ];
+// 첫 화면 슬라이드 (bombata.it 모델 화보)
+window.KV_SLIDES = [
+  { split: ['bombata_Velluto_G06.webp', 'bombata_100gr_G07.webp', 'bombata_teddy_G03.webp'] },
+  { id: 'velluto', ci: 0, img: 'bombata_Velluto_G05.webp', pos: '50% 35%' },
+  { id: 'g100', ci: 2, img: 'bombata_100gr_G06.webp', pos: '50% 30%' },
+  { id: 'eco-camoscio', ci: 0, img: 'bombata_Eco-Camoscio_g04.webp', pos: '50% 40%' },
+];
 window.STORY_IMG = img('bombata_Velluto_G05.webp', 1200);
 window.IMG = img;
