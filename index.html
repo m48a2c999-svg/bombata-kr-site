@@ -719,8 +719,8 @@ footer{background:#111}
 
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastBtn">장바구니 보기</button></div>
 
-<script src="assets/i18n.js"></script>
-<script src="assets/products.js"></script>
+<script src="assets/i18n.js?v=20261116c"></script>
+<script src="assets/products.js?v=20261116c"></script>
 <script>
 (() => {
 'use strict';
@@ -930,7 +930,7 @@ grid.querySelectorAll('.pcard').forEach(card => {
 });
 
 /* ---------- key visual slideshow ---------- */
-const KV = (window.KV_SLIDES || []).filter(k => !k.id || P.find(p => p.id === k.id));
+const KV = (window.KV_SLIDES || (window.LOOKBOOK || []).slice(0, 4)).filter(k => !k.id || P.find(p => p.id === k.id));
 $('#kvSlides').innerHTML = KV.map((k, i) => `<div class="kv-slide ${i ? '' : 'on'}" style="--pos:${k.pos || '50% 30%'}">${k.split ? `<div class="kv-split">${k.split.map(f => `<img src="${IMG(f, 1000)}" alt="" ${i ? 'loading="lazy"' : ''}>`).join('')}</div>` : `<img src="${IMG(k.img, 2000)}" alt="Bombata" ${i ? 'loading="lazy"' : ''}>`}</div>`).join('');
 $('#kvDots').innerHTML = KV.map((k, i) => `<button class="${i ? '' : 'on'}" data-i="${i}" aria-label="${i + 1}"></button>`).join('');
 let kvI = 0, kvT;
