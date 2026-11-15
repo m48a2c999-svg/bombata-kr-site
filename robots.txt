@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /success.html
+Disallow: /fail.html
+
+Sitemap: https://www.bombata.kr/sitemap.xml
