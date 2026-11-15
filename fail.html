@@ -17,11 +17,15 @@ h1 em{font-style:italic;color:#a8874f}
 p{color:#55524c;font-size:14px;line-height:1.8;margin-top:14px}
 code{font-size:12px;background:#f4f1ea;padding:2px 6px;border-radius:6px}
 .btn{display:inline-flex;align-items:center;justify-content:center;height:50px;padding:0 28px;border-radius:999px;background:#1c1b19;color:#fff;text-decoration:none;font-size:14px;margin-top:30px}
+
+/* 봄바타 공식 로고(손글씨 Bombata®) — bombata.it 로고 이미지에서 Bombata 부분만 잘라 표시 */
+.bmark{display:inline-block;vertical-align:middle;height:var(--bh,30px);width:calc(var(--bh,30px) * 5.44);background:url('https://cdn.shopify.com/s/files/1/0551/1348/2430/files/Logo_Bombata_Urbanite_Black.png?width=1300') no-repeat;background-size:calc(var(--bh,30px) * 10.59) auto;background-position:0 calc(var(--bh,30px) * -.131);font-size:0;color:transparent}
+.bmark.w{background-image:url('https://cdn.shopify.com/s/files/1/0551/1348/2430/files/Logo_Bombata_Urbanite_White.png?width=1300')}
 </style>
 </head>
 <body>
 <div class="box">
-  <div class="logo">BOMBATA</div>
+  <div class="logo"><span class="bmark" style="--bh:30px" role="img" aria-label="Bombata">Bombata</span></div>
   <h1>결제가 <em>완료되지</em> 않았습니다</h1>
   <p id="m"></p>
   <p>장바구니는 그대로 남아 있습니다. 다시 시도하시거나 고객센터(02-3482-2701)로 문의해주세요.</p>
