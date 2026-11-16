@@ -967,11 +967,11 @@ $('#lkPrev').onclick = () => lkStep(-1); $('#lkNext').onclick = () => lkStep(1);
 /* 마우스를 따라 좌우로 흐르는 룩북 (데스크톱) */
 (() => { const tr = $('#lookTrack'); if (!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
   let target = null, raf = 0, hold = 0;
-  const run = () => { if (target == null) { raf = 0; return; } const d = target - tr.scrollLeft; if (Math.abs(d) < .5) { tr.scrollLeft = target; raf = 0; return; } tr.scrollLeft += Math.sign(d) * Math.min(Math.abs(d) * .025, 9); raf = requestAnimationFrame(run); };
+  let last = 0; const run = now => { if (target == null) { raf = 0; last = 0; return; } const dt = last ? Math.min((now - last) / 1000, .05) : 1 / 60; last = now; const d = target - tr.scrollLeft; if (Math.abs(d) < .5) { tr.scrollLeft = target; raf = 0; last = 0; return; } const step = Math.min(Math.abs(d) * 1.6 * dt, 380 * dt); tr.scrollLeft += Math.sign(d) * Math.max(step, .5); raf = requestAnimationFrame(run); };
   tr.addEventListener('mousemove', e => { if (Date.now() < hold) return; const r = tr.getBoundingClientRect(), edge = 0.12;
     let k = (e.clientX - r.left) / r.width; k = Math.min(1, Math.max(0, (k - edge) / (1 - edge * 2)));
     target = k * (tr.scrollWidth - tr.clientWidth); if (!raf) raf = requestAnimationFrame(run); });
-  tr.addEventListener('mouseleave', () => { target = null; });
+  tr.addEventListener('mouseleave', () => { target = null; last = 0; });
   ['#lkPrev', '#lkNext'].forEach(id => $(id).addEventListener('click', () => { target = null; hold = Date.now() + 900; }));
 })();
 
