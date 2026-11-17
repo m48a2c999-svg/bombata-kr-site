@@ -21,9 +21,10 @@ const LANG = pick();
 
 /* ---------- 화면 고정 문구 (CSS 선택자 → 번역). 한국어는 원문 사용 ---------- */
 const STATIC = [
+  ['.sz-handle', { en: 'Rubber handle', ja: 'ラバーハンドル', it: 'Manico in gomma' }],
   ['.sz-strap', { en: 'Shoulder strap · detachable', ja: 'ショルダーストラップ · 取り外し可', it: 'Tracolla · removibile' }],
   ['.sz-lap', { en: 'Laptop compartment 38 × 26 cm', ja: 'PC収納部 38 × 26 cm', it: 'Vano PC 38 × 26 cm' }],
-  ['.sz-lap2', { en: 'Fits 15.6 – 16" laptops', ja: '15.6 – 16インチ対応', it: 'Per notebook da 15,6 – 16"' }],
+  ['.sz-lap2', { en: 'Fits 14 – 16" laptops', ja: '14 – 16インチ対応', it: 'Per notebook da 14 – 16"' }],
   ['.sz-note', { en: 'Approx. 0.8 kg · ±1 cm by model', ja: '約0.8 kg · モデルにより±1 cm', it: 'Circa 0,8 kg · ±1 cm a seconda del modello' }],
   ['nav.main a[href="#collection"]', { en: 'Collection', ja: 'コレクション', it: 'Collezione' }],
   ['nav.main a[href="#material"]', { en: 'Materials', ja: '素材', it: 'Materiali' }],
@@ -33,7 +34,7 @@ const STATIC = [
   ['.hero-ctrl .hint', { en: 'Drag to rotate', ja: 'ドラッグして回転', it: 'Trascina per ruotare' }],
   ['.usp .i:nth-child(1)', { en: '<b>Direct Import</b>Direct from the maker, Extreme Design (Italy)', ja: '<b>Direct Import</b>イタリアのメーカー Extreme Design と直接取引', it: '<b>Importazione diretta</b>Direttamente dal produttore Extreme Design' }],
   ['.usp .i:nth-child(2)', { en: '<b>Designed in Prato</b>Born in Italy\'s historic textile city', ja: '<b>Designed in Prato</b>繊維の街プラートで生まれたデザイン', it: '<b>Disegnata a Prato</b>Nata nella storica città del tessile' }],
-  ['.usp .i:nth-child(3)', { en: '<b>Laptop Safe</b>15.6–16" laptop compartment · document pockets', ja: '<b>Laptop Safe</b>15.6〜16インチPC収納 · 書類ポケット', it: '<b>Protezione PC</b>Vano PC 15,6–16" · tasche porta documenti' }],
+  ['.usp .i:nth-child(3)', { en: '<b>Laptop Safe</b>14–16" laptop compartment · document pockets', ja: '<b>Laptop Safe</b>14〜16インチPC収納 · 書類ポケット', it: '<b>Protezione PC</b>Vano PC 14–16" · tasche porta documenti' }],
   ['.usp .i:nth-child(4)', { en: '<b>Free Shipping</b>Free delivery in Korea · Genuine product', ja: '<b>Free Shipping</b>韓国内送料無料 · 正規品保証', it: '<b>Spedizione gratuita</b>In tutta la Corea · prodotto originale' }],
   ['#collection .sec-hd h2', { en: 'Real <em>Fabric</em><br>The Fabric Line', ja: 'Real <em>Fabric</em><br>ファブリックコレクション', it: 'Vero <em>tessuto</em><br>La linea in tessuto' }],
   ['#collection .sec-hd p', {
@@ -69,7 +70,7 @@ const STATIC = [
   ['.facts div:nth-child(2) span', { en: 'weight (15.6")', ja: '重さ（15.6インチ）', it: 'peso (15,6")' }],
   ['.facts div:nth-child(3) span', { en: 'genuine, direct import', ja: '本社直輸入の正規品', it: 'originale, import diretto' }],
   ['#size h2', { it: 'Guida alle <em>misure</em>' }],
-  ['table.spec tr:nth-child(1)', { en: '<th>Laptop fit</th><td>15.6–16" (MacBook Pro 16", MacBook Air 15", Galaxy Book 15.6", etc.)</td>', ja: '<th>対応ノートPC</th><td>15.6〜16インチ（MacBook Pro 16"、MacBook Air 15"、Galaxy Book 15.6" など）</td>', it: '<th>Portatile</th><td>15,6–16" (MacBook Pro 16", MacBook Air 15", Galaxy Book 15,6", ecc.)</td>' }],
+  ['table.spec tr:nth-child(1)', { en: '<th>Laptop fit</th><td>14–16" (MacBook Pro 14"/16", MacBook Air 15", Galaxy Book 14"/15.6", etc.)</td>', ja: '<th>対応ノートPC</th><td>14〜16インチ（MacBook Pro 14"/16"、MacBook Air 15"、Galaxy Book 14"/15.6" など）</td>', it: '<th>Portatile</th><td>14–16" (MacBook Pro 14"/16", MacBook Air 15", Galaxy Book 14"/15,6", ecc.)</td>' }],
   ['table.spec tr:nth-child(2)', { en: '<th>Outer size</th><td>43 × 33 × 7 cm</td>', ja: '<th>外寸</th><td>43 × 33 × 7 cm</td>', it: '<th>Dimensioni esterne</th><td>43 × 33 × 7 cm</td>' }],
   ['table.spec tr:nth-child(3)', { en: '<th>Laptop compartment</th><td>38 × 26 cm</td>', ja: '<th>PC収納部</th><td>38 × 26 cm</td>', it: '<th>Vano PC</th><td>38 × 26 cm</td>' }],
   ['table.spec tr:nth-child(4)', { en: '<th>Weight</th><td>approx. 0.8 kg</td>', ja: '<th>重さ</th><td>約0.8 kg</td>', it: '<th>Peso</th><td>circa 0,8 kg</td>' }],
