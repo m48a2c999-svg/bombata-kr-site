@@ -21,6 +21,10 @@ const LANG = pick();
 
 /* ---------- 화면 고정 문구 (CSS 선택자 → 번역). 한국어는 원문 사용 ---------- */
 const STATIC = [
+  ['.sz-strap', { en: 'Shoulder strap · detachable', ja: 'ショルダーストラップ · 取り外し可', it: 'Tracolla · removibile' }],
+  ['.sz-lap', { en: 'Laptop compartment 38 × 26 cm', ja: 'PC収納部 38 × 26 cm', it: 'Vano PC 38 × 26 cm' }],
+  ['.sz-lap2', { en: 'Fits 15.6 – 16" laptops', ja: '15.6 – 16インチ対応', it: 'Per notebook da 15,6 – 16"' }],
+  ['.sz-note', { en: 'Approx. 0.8 kg · ±1 cm by model', ja: '約0.8 kg · モデルにより±1 cm', it: 'Circa 0,8 kg · ±1 cm a seconda del modello' }],
   ['nav.main a[href="#collection"]', { en: 'Collection', ja: 'コレクション', it: 'Collezione' }],
   ['nav.main a[href="#material"]', { en: 'Materials', ja: '素材', it: 'Materiali' }],
   ['nav.main a[href="#story"]', { en: 'Brand', ja: 'ブランド', it: 'Marchio' }],
