@@ -293,7 +293,7 @@ window.I18N = {
   t(key, o) { const e = TXT[key]; if (!e) return key; const v = e[LANG] ?? e.ko; return typeof v === 'string' ? fill(v, o) : v; },
   won(n) { return (TXT.won[LANG] || TXT.won.ko)(n); },
   p(p, field) { return (LANG !== 'ko' && PROD[p.id] && PROD[p.id][LANG] && PROD[p.id][LANG][field]) || p[field]; },
-  c(c) { if (LANG === 'ko') return c.name; if (LANG === 'it') return c.it; return (COLOR[c.key] && COLOR[c.key][LANG]) || c.it; },
+  c(c) { if (LANG === 'ko') return c.name; if (LANG === 'it') return c.it; return c[LANG] || (COLOR[c.key] && COLOR[c.key][LANG]) || c.it; },
   apply() {
     document.documentElement.lang = LANG;
     if (LANG === 'ko') return;
