@@ -1172,7 +1172,8 @@ const loadScript = src => new Promise((ok, ng) => {
   const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
 });
 let widgets = null, widgetReady = false;
-const isTest = S.tossClientKey.startsWith('test_');
+const PAY = (S.portone && (S.payVia === 'portone' || new URLSearchParams(location.search).get('pay') === 'portone')) ? 'portone' : 'toss';
+const isTest = PAY === 'portone' ? !!S.portone.test : S.tossClientKey.startsWith('test_');
 const canRedirect = /^https?:$/.test(location.protocol);
 
 async function openCheckout() {
@@ -1192,6 +1193,18 @@ async function openCheckout() {
   $('#testBar').innerHTML = notes.join('<br>'); $('#testBar').style.display = notes.length ? '' : 'none';
   $('#checkout').classList.add('on'); document.body.style.overflow = 'hidden';
   $('#checkout').scrollTop = 0;
+  if (PAY === 'portone') {
+    try {
+      await loadScript('https://cdn.portone.io/v2/browser-sdk.js');
+      if (!window.PortOne || !PortOne.requestPayment) throw new Error('portone');
+      $('#payment-method').innerHTML = `<div class="testbar" style="margin:0 12px">${t('poHint')}</div>`;
+      widgetReady = true;
+    } catch (err) {
+      console.error(err); widgetReady = false;
+      $('#payment-method').innerHTML = `<div class="testbar" style="margin:0 12px">${t('payLoadErr')}<br>${t('orStore', { a: `<a href="${S.smartstoreHome}" target="_blank" rel="noopener" style="text-decoration:underline">${t('store')}</a>` })}</div>`;
+    }
+    return;
+  }
   try {
     await loadScript('https://js.tosspayments.com/v2/standard');
     if (!widgets) {
@@ -1253,6 +1266,26 @@ $('#coForm').addEventListener('submit', async e => {
     ship: { zip: v('oZip'), addr1: v('oAddr1'), addr2: v('oAddr2'), memo: v('oMemo') },
   };
   store.set('bk_order', order);
+  if (PAY === 'portone') {
+    try {
+      $('#payBtn').disabled = true;
+      const done = new URL('success.html', location.href);
+      done.searchParams.set('via', 'portone');
+      const r = await PortOne.requestPayment({
+        storeId: S.portone.storeId, channelKey: S.portone.channelKey,
+        paymentId: orderId, orderName, totalAmount: tt.total, currency: 'CURRENCY_KRW', payMethod: 'CARD',
+        customer: { fullName: order.customer.name, phoneNumber: order.customer.phone.replace(/\D/g, ''), email: order.customer.email },
+        redirectUrl: done.href,
+      });
+      if (!r) return;
+      if (r.code) { err.textContent = r.message || t('cancelled'); return; }
+      done.searchParams.set('paymentId', r.paymentId || orderId);
+      location.href = done.href;
+    } catch (ex) {
+      err.textContent = ex && ex.message ? ex.message : t('cancelled');
+    } finally { $('#payBtn').disabled = false; }
+    return;
+  }
   try {
     $('#payBtn').disabled = true;
     await widgets.requestPayment({

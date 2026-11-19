@@ -55,33 +55,42 @@ const TX = {
 const tx = (k, ko) => (TX[k] && TX[k][LANG]) || ko;
 document.documentElement.lang = LANG;
 const CONFIRM_URL = 'https://qoyvpxtvcwkonwdtkdhk.supabase.co/functions/v1/bombata-confirm';
+const PORTONE_URL = 'https://qoyvpxtvcwkonwdtkdhk.supabase.co/functions/v1/bombata-portone';
 (async () => {
   const q = new URLSearchParams(location.search);
-  const paymentKey = q.get('paymentKey'), orderId = q.get('orderId'), amount = Number(q.get('amount'));
+  const viaPortone = q.get('via') === 'portone' || (!!q.get('paymentId') && !q.get('paymentKey'));
+  const pid = q.get('paymentId') || '';
   let order = null; try { order = JSON.parse(localStorage.getItem('bk_order')); } catch {}
+  const paymentKey = viaPortone ? pid : q.get('paymentKey');
+  const orderId = viaPortone ? pid : q.get('orderId');
+  const amount = viaPortone ? (order && order.orderId === pid ? order.amount : NaN) : Number(q.get('amount'));
   const won = n => Number(n).toLocaleString('ko-KR') + '원';
   const $ = id => document.getElementById(id);
   const st = (cls, msg) => { $('st').className = 'st ' + cls; $('st').innerHTML = msg; };
 
   $('h').innerHTML = tx('checking', $('h').innerHTML); $('lead').textContent = tx('wait', $('lead').textContent);
   document.querySelector('.btn').textContent = tx('back', '쇼핑 계속하기');
+  if (viaPortone && q.get('code')) {
+    $('h').innerHTML = tx('fail', '결제가 <em>승인되지</em> 않았습니다'); $('lead').textContent = '';
+    st('bad', (q.get('message') || '결제가 취소되었습니다.').replace(/[<>&]/g, '')); return;
+  }
   if (!paymentKey || !orderId) { $('h').innerHTML = '잘못된 <em>접근</em>입니다'; $('lead').textContent = ''; st('bad', '결제 정보가 없습니다.'); return; }
   if (order && order.orderId === orderId && order.amount !== amount) {
     $('h').innerHTML = '결제 금액 <em>불일치</em>'; $('lead').textContent = ''; st('bad', '주문 금액과 결제 금액이 다릅니다. 결제가 승인되지 않았습니다. 고객센터(02-3482-2701)로 문의해주세요.'); return;
   }
 
   // 서버(Supabase Edge Function)에서 결제 승인 → 승인돼야 결제 완료
-  let confirmed = false, testOnly = false, msg = '', receipt = null;
+  let confirmed = false, testOnly = false, msg = '', receipt = null, shown = amount;
   try {
     const same = order && order.orderId === orderId;
-    const r = await fetch(CONFIRM_URL, {
+    const r = await fetch(viaPortone ? PORTONE_URL : CONFIRM_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paymentKey, orderId, amount,
+      body: JSON.stringify({ paymentKey, paymentId: orderId, orderId, amount,
         items: same ? order.items : null, orderName: same ? order.orderName : null, preorder: same ? order.preorder : true,
         customer: same ? order.customer : null, ship: same ? order.ship : null }),
     });
     if (r.status === 404) testOnly = true;
-    else { const j = await r.json(); confirmed = r.ok || !!j.already; msg = j.code === 'SOLD_OUT' ? tx('soldOut', j.message || '') : (j.message || ''); receipt = j.receiptUrl || null; }
+    else { const j = await r.json(); confirmed = r.ok || !!j.already; msg = j.code === 'SOLD_OUT' ? tx('soldOut', j.message || '') : (j.message || ''); receipt = j.receiptUrl || null; if (Number.isFinite(j.amount)) shown = j.amount; }
   } catch { testOnly = true; }
 
   if (confirmed) {
@@ -99,7 +108,7 @@ const CONFIRM_URL = 'https://qoyvpxtvcwkonwdtkdhk.supabase.co/functions/v1/bomba
     st('bad', (msg || '결제 승인 중 오류가 발생했습니다.') + '<br>' + tx('refundNote', '금액이 빠져나갔다면 자동 취소됩니다. 문의: 02-3482-2701'));
   }
 
-  const rows = [[tx('orderNo', '주문번호'), orderId], [tx('amount', '결제 금액'), won(amount)]];
+  const rows = [[tx('orderNo', '주문번호'), orderId], [tx('amount', '결제 금액'), Number.isFinite(shown) ? won(shown) : '-']];
   if (order && order.orderId === orderId) {
     rows.push([tx('to', '받는 분'), order.customer.name]);
     rows.push([tx('addr', '배송지'), `${order.ship.addr1} ${order.ship.addr2}`]);
