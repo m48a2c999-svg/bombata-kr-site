@@ -42,7 +42,7 @@ const TX = {
   checking: { en: 'Confirming your <em>payment</em>', ja: '<em>決済</em>を確認しています', it: 'Verifica del <em>pagamento</em>' },
   wait: { en: 'Please wait a moment.', ja: '少々お待ちください。', it: 'Attendi un momento.' },
   done: { en: 'Order <em>complete</em>', ja: 'ご注文が<em>完了</em>しました', it: 'Ordine <em>completato</em>' },
-  donePre: { en: 'Thank you for your pre-order. Orders ship from February 2027 in the order they were paid; we will text you before dispatch.', ja: 'ご予約ありがとうございます。2027年2月からご入金順に発送し、発送前にSMSでご案内します。', it: 'Grazie per il preordine. Le spedizioni partono da febbraio 2027 in ordine di pagamento; ti avviseremo via SMS.' },
+  donePre: { en: 'Thank you for your pre-order. Orders ship in January 2027 in the order they were paid; we will text you before dispatch.', ja: 'ご予約ありがとうございます。2027年1月中にご入金順に発送し、発送前にSMSでご案内します。', it: 'Grazie per il preordine. Le spedizioni avvengono a gennaio 2027 in ordine di pagamento; ti avviseremo via SMS.' },
   doneLive: { en: 'Thank you. We will ship within 1–3 business days and text you the tracking number.', ja: 'ありがとうございます。1〜3営業日以内に発送し、追跡番号をSMSでお送りします。', it: 'Grazie. Spediamo entro 1–3 giorni lavorativi e ti inviamo il tracking via SMS.' },
   ok: { en: 'Payment approved.', ja: '決済が承認されました。', it: 'Pagamento approvato.' },
   receipt: { en: 'View receipt', ja: '領収書を見る', it: 'Vedi ricevuta' },
@@ -95,7 +95,7 @@ const PORTONE_URL = 'https://qoyvpxtvcwkonwdtkdhk.supabase.co/functions/v1/bomba
 
   if (confirmed) {
     $('h').innerHTML = tx('done', '주문이 <em>완료</em>되었습니다');
-    $('lead').textContent = order && order.preorder ? tx('donePre', '사전예약해주셔서 감사합니다. 2027년 2월부터 결제 순서대로 출고되며, 출고 전 문자로 안내드립니다.') : tx('doneLive', '감사합니다. 1~3 영업일 내 출고 후 송장번호를 문자로 보내드립니다.');
+    $('lead').textContent = order && order.preorder ? tx('donePre', '사전예약해주셔서 감사합니다. 2027년 1월 중 결제 순서대로 출고되며, 출고 전 문자로 안내드립니다.') : tx('doneLive', '감사합니다. 1~3 영업일 내 출고 후 송장번호를 문자로 보내드립니다.');
     st('ok', tx('ok', '결제가 정상 승인되었습니다.') + (receipt ? ` <a href="${receipt}" target="_blank" rel="noopener" style="text-decoration:underline">${tx('receipt', '영수증 보기')}</a>` : ''));
     try { localStorage.removeItem('bk_cart'); localStorage.removeItem('bk_order'); } catch {}
   } else if (testOnly) {

@@ -77,9 +77,9 @@ const STATIC = [
   ['table.spec tr:nth-child(5)', { en: '<th>Inside</th><td>Velcro laptop strap · mesh pocket · document pockets with dividers (varies by model)</td>', ja: '<th>内部</th><td>ノートPC固定ベルクロストラップ · メッシュポケット · 仕切り付き書類ポケット（モデルにより異なります）</td>', it: '<th>Interno</th><td>Cinghia in velcro per il PC · tasca a rete · tasche porta documenti con separatori (varia per modello)</td>' }],
   ['table.spec tr:nth-child(6)', { en: '<th>In the box</th><td>Bag + matching shoulder strap</td>', ja: '<th>付属品</th><td>本体 + 同色ショルダーストラップ</td>', it: '<th>Contenuto</th><td>Borsa + tracolla abbinata</td>' }],
   ['#faq details:nth-of-type(1)', {
-    en: '<summary>When will I receive a pre-order?</summary><p>The fabric collection is being imported from Italy for our February 2027 back-to-school launch. Orders ship from February 2027 in the order they were paid, and we\'ll text you before dispatch. You can cancel for a full refund at any time before shipping.</p>',
-    ja: '<summary>予約商品はいつ届きますか？</summary><p>ファブリックコレクションは2027年2月の新学期ローンチに合わせてイタリアから輸入します。2027年2月からご入金順に発送し、発送前にSMSでご案内します。発送前であればいつでも全額返金でキャンセルできます。</p>',
-    it: '<summary>Quando ricevo un preordine?</summary><p>La collezione in tessuto viene importata dall\'Italia per il lancio di febbraio 2027. Le spedizioni partono da febbraio 2027 in ordine di pagamento e ti avviseremo via SMS prima dell\'invio. Puoi annullare con rimborso totale in qualsiasi momento prima della spedizione.</p>' }],
+    en: '<summary>When will I receive a pre-order?</summary><p>The fabric collection is being imported from Italy for our January 2027 launch. Orders ship from January 2027 in the order they were paid, and we\'ll text you before dispatch. You can cancel for a full refund at any time before shipping.</p>',
+    ja: '<summary>予約商品はいつ届きますか？</summary><p>ファブリックコレクションは2027年1月のローンチに合わせてイタリアから輸入します。2027年1月からご入金順に発送し、発送前にSMSでご案内します。発送前であればいつでも全額返金でキャンセルできます。</p>',
+    it: '<summary>Quando ricevo un preordine?</summary><p>La collezione in tessuto viene importata dall\'Italia per il lancio di gennaio 2027. Le spedizioni partono da gennaio 2027 in ordine di pagamento e ti avviseremo via SMS prima dell\'invio. Puoi annullare con rimborso totale in qualsiasi momento prima della spedizione.</p>' }],
   ['#faq details:nth-of-type(2)', {
     en: '<summary>Is it genuine? Where is it imported from?</summary><p>ELMO COMPANY buys directly from Bombata\'s maker, Extreme Design srl (Prato, Italy). We only sell products that have cleared formal import customs, and our Korean customer service handles exchanges, returns and repairs.</p>',
     ja: '<summary>正規品ですか？どこから輸入していますか？</summary><p>エルモカンパニーはボンバータのメーカー Extreme Design srl（イタリア・プラート）と直接取引して輸入しています。正式な輸入通関を経た製品のみを販売し、交換・返品・修理は韓国のカスタマーセンターが対応します。</p>',
@@ -148,7 +148,7 @@ const TXT = {
                 en: ['Laptop bags designed in Prato, Italy', 'Imported direct from Italy · ELMO COMPANY', 'Free shipping in Korea', 'Seven real-fabric models'],
                 ja: ['イタリア・プラートデザインのノートPCバッグ', 'イタリア本社直輸入 · エルモカンパニー', '韓国内 全品送料無料', '本物の生地のモデル7種'],
                 it: ['Borse porta PC disegnate a Prato', 'Importazione diretta · ELMO COMPANY', 'Spedizione gratuita in Corea', 'Sette modelli in vero tessuto'] },
-  preorder:   { ko: '2027년 2월 신학기 런칭 · 사전예약 고객 순차 출고', en: 'Launching February 2027 · pre-orders ship in order', ja: '2027年2月新学期ローンチ · ご予約順に発送', it: 'Lancio a febbraio 2027 · preordini spediti in ordine' },
+  preorder:   { ko: '2027년 1월 런칭 · 사전예약 고객 1월 순차 출고', en: 'Launching January 2027 · pre-orders ship in January', ja: '2027年1月ローンチ · ご予約順に1月発送', it: 'Lancio a gennaio 2027 · preordini spediti a gennaio' },
   live:       { ko: '본사 직수입 · 국내 재고 출고', en: 'Direct import · ships from Korea', ja: '本社直輸入 · 韓国在庫から発送', it: 'Import diretto · spedito dalla Corea' },
   details:    { ko: '자세히 보기', en: 'Details', ja: '詳しく見る', it: 'Dettagli' },
   addCart:    { ko: '장바구니 담기', en: 'Add to cart', ja: 'カートに入れる', it: 'Aggiungi' },
