@@ -204,7 +204,7 @@ const TXT = {
   eEmail:     { ko: '이메일을 확인해주세요.', en: 'Please check your email.', ja: 'メールアドレスをご確認ください。', it: 'Controlla l\'email.' },
   eAddr:      { ko: '배송지를 모두 입력해주세요.', en: 'Please complete the shipping address.', ja: 'お届け先をすべて入力してください。', it: 'Completa l\'indirizzo di spedizione.' },
   eAgree:     { ko: '주문 및 약관 동의에 체크해주세요.', en: 'Please tick the agreement box.', ja: '同意欄にチェックしてください。', it: 'Spunta la casella di consenso.' },
-  poHint:     { ko: '결제하기를 누르면 카드·간편결제 창이 열립니다. (토스페이먼츠 · 포트원)', en: 'Tap Pay to open the card / easy-pay window (Toss Payments via PortOne).', ja: 'お支払いボタンを押すとカード・簡単決済の画面が開きます（Toss Payments・PortOne）。', it: 'Tocca Paga per aprire la finestra di pagamento (Toss Payments tramite PortOne).' },
+  poHint:     { ko: '결제하기를 누르면 카드 결제 창이 열립니다. (KG이니시스 · 포트원)', en: 'Tap Pay to open the card / easy-pay window (KG Inicis via PortOne).', ja: 'お支払いボタンを押すとカード・簡単決済の画面が開きます（KG Inicis・PortOne）。', it: 'Tocca Paga per aprire la finestra di pagamento (KG Inicis tramite PortOne).' },
   eWidget:    { ko: '결제 모듈이 준비되지 않았습니다.', en: 'The payment module is not ready yet.', ja: '決済モジュールの準備ができていません。', it: 'Il modulo di pagamento non è pronto.' },
   eFile:      { ko: '파일로 연 상태에서는 결제를 진행할 수 없습니다. bombata.kr 배포 후 이용해주세요.', en: 'Payment is not available when opened as a local file.', ja: 'ファイルとして開いている場合は決済できません。', it: 'Pagamento non disponibile da file locale.' },
   cancelled:  { ko: '결제가 취소되었습니다.', en: 'Payment was cancelled.', ja: '決済がキャンセルされました。', it: 'Pagamento annullato.' },
