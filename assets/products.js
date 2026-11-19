@@ -35,8 +35,8 @@ window.SITE = {
   smartstoreHome: 'https://smartstore.naver.com/elmo_customart',
 };
 
-const CDN = 'https://cdn.shopify.com/s/files/1/0551/1348/2430/files/';
-const img = (f, w = 1400) => /^(img\/|data:|https?:)/.test(f) ? f : `${CDN}${f}${f.includes('?') ? '&' : '?'}width=${w}`;
+const CDN = 'img/p/';   // 2026-11-20: 사진을 bombata.kr 에 직접 보관(이전: 본사 쇼피파이 저장소에서 불러옴)
+const img = (f, w = 1400) => /^(img\/|data:|https?:)/.test(f) ? f : `${CDN}${f.split('?')[0]}`;   // w 는 예전 쇼피파이 크기 지정용(지금은 1800px 한 장)
 
 window.PRODUCTS = [
   {
@@ -152,14 +152,14 @@ window.PRODUCTS = [
     weight: '0.8 kg',
     badge: 'ECO',
     smartstore: '',
-    matImg: 'bombata_Eco-Camoscio_g01.png?v=1788348992',
+    matImg: 'bombata_Eco-Camoscio_g01.webp',
     colors: [
-      { key: 'tortora', name: '마로네 브라운', it: 'Marrone', en: 'Brown', ja: 'ブラウン', hex: '#a8692f', img: 'bombata-Eco-Camoscio_15_11.png?v=1788348992' },
-      { key: 'blu', name: '블루 스쿠로', it: 'Blu scuro', hex: '#243049', img: 'bombata-Eco-Camoscio_15_29.png?v=1788348992' },
-      { key: 'khaki', name: '베르데 카키', it: 'Verde Khaki', hex: '#5d6146', img: 'bombata-Eco-Camoscio_15_12.png?v=1788348992' },
+      { key: 'tortora', name: '마로네 브라운', it: 'Marrone', en: 'Brown', ja: 'ブラウン', hex: '#a8692f', img: 'bombata-Eco-Camoscio_15_11.webp' },
+      { key: 'blu', name: '블루 스쿠로', it: 'Blu scuro', hex: '#243049', img: 'bombata-Eco-Camoscio_15_29.webp' },
+      { key: 'khaki', name: '베르데 카키', it: 'Verde Khaki', hex: '#5d6146', img: 'bombata-Eco-Camoscio_15_12.webp' },
     ],
     looks: ['bombata_Eco-Camoscio_g02.webp', 'bombata_Eco-Camoscio_g03.webp', 'bombata_Eco-Camoscio_g04.webp'],   // 모델 착용 사진 (bombata.it)
-    gallery: ['bombata_Eco-Camoscio_g01.png?v=1788348992'],
+    gallery: ['bombata_Eco-Camoscio_g01.webp'],
   },
   {
     id: 'nylon-20',
@@ -176,15 +176,15 @@ window.PRODUCTS = [
     weight: '0.8 kg',
     badge: '',
     smartstore: '',
-    matImg: 'bombata_Nylon-2.0_G03.webp?v=1770307779',
+    matImg: 'bombata_Nylon-2.0_G03.webp',
     colors: [
-      { key: 'nero', name: '네로 블랙', it: 'Nero', hex: '#1d1d1f', img: 'bombata_Nylon-2.0_15_4.png?v=1770307719' },
-      { key: 'blu', name: '블루 스쿠로', it: 'Blu scuro', hex: '#1f2a44', img: 'bombata_Nylon-2.0_15_11.png?v=1770307720' },
-      { key: 'rosso', name: '로쏘 보르고냐', it: 'Rosso borgogna', hex: '#6b1e2a', img: 'bombata_Nylon-2.0_15_30.png?v=1770307720' },
-      { key: 'verde', name: '베르데 카키', it: 'Verde Kaki', en: 'Khaki green', ja: 'カーキグリーン', hex: '#4a5a3a', img: 'bombata_Nylon-2.0_15_7.png?v=1770307779' },
+      { key: 'nero', name: '네로 블랙', it: 'Nero', hex: '#1d1d1f', img: 'bombata_Nylon-2.0_15_4.webp' },
+      { key: 'blu', name: '블루 스쿠로', it: 'Blu scuro', hex: '#1f2a44', img: 'bombata_Nylon-2.0_15_11.webp' },
+      { key: 'rosso', name: '로쏘 보르고냐', it: 'Rosso borgogna', hex: '#6b1e2a', img: 'bombata_Nylon-2.0_15_30.webp' },
+      { key: 'verde', name: '베르데 카키', it: 'Verde Kaki', en: 'Khaki green', ja: 'カーキグリーン', hex: '#4a5a3a', img: 'bombata_Nylon-2.0_15_7.webp' },
     ],
     looks: [],   // 모델 착용 사진 (bombata.it)
-    gallery: ['bombata_Nylon-2.0_G03.webp?v=1770307779', 'bombata_Nylon-2.0_G06.webp?v=1770307779', 'bombata_Nylon-2.0_G01.webp?v=1770307779', 'bombata_Nylon-2.0_G02.webp?v=1770307779'],
+    gallery: ['bombata_Nylon-2.0_G03.webp', 'bombata_Nylon-2.0_G06.webp', 'bombata_Nylon-2.0_G01.webp', 'bombata_Nylon-2.0_G02.webp'],
   },
   {
     id: 'taormina',
@@ -201,12 +201,12 @@ window.PRODUCTS = [
     weight: '0.8 kg',
     badge: '',
     smartstore: '',
-    matImg: 'bombata_Taormina_G01.webp?v=1770306613',
+    matImg: 'bombata_Taormina_G01.webp',
     colors: [
-      { key: 'giallo', name: '지알로 (멀티 컬러)', it: 'Giallo', hex: '#b58c55', img: 'bombata_Taormina_15.webp?v=1770209473' },
+      { key: 'giallo', name: '지알로 (멀티 컬러)', it: 'Giallo', hex: '#b58c55', img: 'bombata_Taormina_15.webp' },
     ],
     looks: [],   // 모델 착용 사진 (bombata.it)
-    gallery: ['bombata_Taormina_G01.webp?v=1770306613', 'bombata_Taormina_G02.webp?v=1770306613'],
+    gallery: ['bombata_Taormina_G01.webp', 'bombata_Taormina_G02.webp'],
   },
 ];
 
