@@ -19,11 +19,12 @@ window.SITE = {
   stockUrl: 'https://qoyvpxtvcwkonwdtkdhk.supabase.co/functions/v1/bombata-stock', // 컬러별 남은 수량(관리자 페이지에서 수정)
   lowStockAt: 5,                 // 이 수량 이하면 '마감 임박' 표시
   confirmUrl: 'https://qoyvpxtvcwkonwdtkdhk.supabase.co/functions/v1/bombata-confirm',
-  // 결제 방식: 'toss' = 토스페이먼츠 결제위젯 직접 연동(지금), 'portone' = 포트원 경유(KG이니시스 채널)
+  // 결제 방식: 'portone' = 포트원 경유(KG이니시스 채널, 지금), 'toss' = 토스페이먼츠 결제위젯 직접 연동
   //  - 포트원 상점·채널 키는 공개 값(비밀 아님). 짝이 되는 비밀 값은 Supabase Secrets 의 PORTONE_API_SECRET
-  //  - 지금 채널은 포트원 '테스트' 채널(실제 돈 안 빠짐). 포트원으로 토스페이먼츠 계약 후 실연동 채널 키로 교체하고 test 를 false 로
-  //  - 테스트할 때는 주소 뒤에 ?pay=portone 을 붙이면 이 방식으로 결제창이 열림
-  payVia: 'toss',
+  //  - 지금 채널은 포트원 '테스트' 채널(실제 돈 안 빠짐). KG이니시스 계약이 끝나면 실연동 채널 키로 교체하고 test 를 false 로
+  //  - 2026-11-22: KG이니시스 입점 심사 중이라 기본 결제를 포트원(KG)으로 바꿈. 심사자가 들어와도 KG 결제창이 보여야 함
+  //  - 예전 토스 방식으로 열어 보려면 주소 뒤에 ?pay=toss 를 붙이면 됨
+  payVia: 'portone',
   portone: {
     storeId: 'store-750f2d74-5bed-4a93-a11c-e3955613fe89',
     channelKey: 'channel-key-c44357b7-a302-49b1-8ad4-df5f37494288',   // KG이니시스 테스트 채널(2026-11-20 KG이니시스 입점 심사 신청)

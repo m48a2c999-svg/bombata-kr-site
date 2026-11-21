@@ -1173,7 +1173,7 @@ const loadScript = src => new Promise((ok, ng) => {
   const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ng; document.head.appendChild(s);
 });
 let widgets = null, widgetReady = false;
-const PAY = (S.portone && (S.payVia === 'portone' || new URLSearchParams(location.search).get('pay') === 'portone')) ? 'portone' : 'toss';
+const PAY = (function(){ var q = new URLSearchParams(location.search).get('pay'); if (q === 'toss') return 'toss'; if (!S.portone) return 'toss'; return (q === 'portone' || S.payVia === 'portone') ? 'portone' : 'toss'; })();
 const isTest = PAY === 'portone' ? !!S.portone.test : S.tossClientKey.startsWith('test_');
 const canRedirect = /^https?:$/.test(location.protocol);
 
